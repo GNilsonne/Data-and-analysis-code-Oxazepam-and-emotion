@@ -53,8 +53,47 @@ sd(demData$IRI_F[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatmen
 mean(demData$IRI_F[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
 sd(demData$IRI_F[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
 
+# Descriptive analyses, TAS-20
+mean(demData$TAS.20[demData$Wave == 1 & demData$Included_EP == 1 & demData$Treatment == "Placebo"], na.rm = T)
+sd(demData$TAS.20[demData$Wave == 1 & demData$Included_EP == 1 & demData$Treatment == "Placebo"], na.rm = T)
+mean(demData$TAS.20[demData$Wave == 1 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
+sd(demData$TAS.20[demData$Wave == 1 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
+mean(demData$TAS.20[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Placebo"], na.rm = T)
+sd(demData$TAS.20[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Placebo"], na.rm = T)
+mean(demData$TAS.20[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
+sd(demData$TAS.20[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
+
+mean(demData$Difficulty.identifying.feelings[demData$Wave == 1 & demData$Included_EP == 1 & demData$Treatment == "Placebo"], na.rm = T)
+sd(demData$Difficulty.identifying.feelings[demData$Wave == 1 & demData$Included_EP == 1 & demData$Treatment == "Placebo"], na.rm = T)
+mean(demData$Difficulty.identifying.feelings[demData$Wave == 1 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
+sd(demData$Difficulty.identifying.feelings[demData$Wave == 1 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
+mean(demData$Difficulty.identifying.feelings[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Placebo"], na.rm = T)
+sd(demData$Difficulty.identifying.feelings[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Placebo"], na.rm = T)
+mean(demData$Difficulty.identifying.feelings[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
+sd(demData$Difficulty.identifying.feelings[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
+
+mean(demData$Difficulty.describing.feelings[demData$Wave == 1 & demData$Included_EP == 1 & demData$Treatment == "Placebo"], na.rm = T)
+sd(demData$Difficulty.describing.feelings[demData$Wave == 1 & demData$Included_EP == 1 & demData$Treatment == "Placebo"], na.rm = T)
+mean(demData$Difficulty.describing.feelings[demData$Wave == 1 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
+sd(demData$Difficulty.describing.feelings[demData$Wave == 1 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
+mean(demData$Difficulty.describing.feelings[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Placebo"], na.rm = T)
+sd(demData$Difficulty.describing.feelings[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Placebo"], na.rm = T)
+mean(demData$Difficulty.describing.feelings[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
+sd(demData$Difficulty.describing.feelings[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
+
+mean(demData$Externally.oriented.thinking[demData$Wave == 1 & demData$Included_EP == 1 & demData$Treatment == "Placebo"], na.rm = T)
+sd(demData$Externally.oriented.thinking[demData$Wave == 1 & demData$Included_EP == 1 & demData$Treatment == "Placebo"], na.rm = T)
+mean(demData$Externally.oriented.thinking[demData$Wave == 1 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
+sd(demData$Externally.oriented.thinking[demData$Wave == 1 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
+mean(demData$Externally.oriented.thinking[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Placebo"], na.rm = T)
+sd(demData$Externally.oriented.thinking[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Placebo"], na.rm = T)
+mean(demData$Externally.oriented.thinking[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
+sd(demData$Externally.oriented.thinking[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
+
+
+
 # Analyse effect of oxazepam on rated state anxiety
-#Make dataframe for mixed-effects model
+# Make dataframe for mixed-effects model
 STAISData <- rbind(demData[, c("Subject", "Treatment", "Wave", "Included_EP", "STAI.S", "STAI.S.Scrambled")], demData[, c("Subject", "Treatment", "Wave", "Included_EP", "STAI.S", "STAI.S.Scrambled")]) 
 STAISData <- STAISData[STAISData$Included_EP == T, ] # Remove participants not included in this experiment
 STAISData$FirstOrSecond <- c(rep.int(1, 0.5*length(STAISData$Subject)), rep.int(2, 0.5*length(STAISData$Subject)))
@@ -74,7 +113,7 @@ intervals(lme1)
 # Plot effects
 eff1 <- effect("Treatment * FirstOrSecond", lme1)
 
-pdf("Fig_STAIS.pdf")
+pdf("Fig_STAIS.pdf", width = 5, height = 5)
 plot(eff1$fit[c(2, 4)],
      frame.plot = F,
      xaxt = "n",
@@ -93,3 +132,55 @@ axis(1, labels = c("First", "Second"), at = c(1.05, 2.05))
 #legend("top", col = c("blue", "red"), pch = c(1, 16), legend = c("Placebo", "Oxazepam"), bty = "n")
 dev.off()
 
+
+# Analyse effect of oxazepam on pain thresholds
+# Make dataframe for mixed-effects model
+VASData <- rbind(demData[, c("Subject", "Treatment", "Wave", "Included_EP", "VAS80_before", "VAS80_after")], demData[, c("Subject", "Treatment", "Wave", "Included_EP", "VAS80_before", "VAS80_after")]) 
+VASData <- VASData[VASData$Included_EP == T, ] # Remove participants not included in this experiment
+VASData$FirstOrSecond <- c(rep.int(1, 0.5*length(VASData$Subject)), rep.int(2, 0.5*length(VASData$Subject)))
+VASData$VAS80 <- NA # Make new column for STAI-S rating, then fill it with values for the first and second ratings, respectively
+VASData$VAS80[VASData$FirstOrSecond == 1] <- VASData$VAS80_before[VASData$FirstOrSecond == 1]
+VASData$VAS80[VASData$FirstOrSecond == 2] <- VASData$VAS80_after[VASData$FirstOrSecond == 2]
+
+lme2 <- lme(VAS80 ~ Treatment * FirstOrSecond + Wave, data = VASData, random = ~1|Subject, na.action = na.omit)
+summary(lme2)
+
+# Inspect residuals
+plot(lme2)
+
+# Get estimates
+intervals(lme2)
+
+# Plot effects
+eff2 <- effect("Treatment * FirstOrSecond", lme2)
+
+pdf("Fig_VAS.pdf", width = 5, height = 5)
+plot(eff2$fit[c(2, 4)],
+     frame.plot = F,
+     xaxt = "n",
+     type = "b",
+     xlab = "",
+     ylab = "Volts required for VAS 80",
+     xlim = c(1, 2.1),
+     ylim = c(65, 85),
+     col = "blue")
+lines(c(1.1,2.1), eff2$fit[c(1, 3)], type = "b", col = "red", pch = 16)
+lines(c(1, 1), c((eff2$upper[2]), (eff2$lower[2])), col = "blue")
+lines(c(2, 2), c((eff2$upper[4]), (eff2$lower[4])), col = "blue")
+lines(c(1.1, 1.1), c((eff2$upper[1]), (eff2$lower[1])), col = "red")
+lines(c(2.1, 2.1), c((eff2$upper[3]), (eff2$lower[3])), col = "red")
+axis(1, labels = c("First", "Second"), at = c(1.05, 2.05))
+#legend("top", col = c("blue", "red"), pch = c(1, 16), legend = c("Placebo", "Oxazepam"), bty = "n")
+dev.off()
+
+
+# Analyse participants' guesses of treatment group membership
+demData$Guessed.group <- factor(demData$Guessed.group, levels = c("Placebo", "Likely_placebo", "Equivocal", "Likely_oxa", "Oxazepam"), ordered = TRUE)
+demData$Guessed.group[demData$Included_EP == 0] <- NA
+
+pdf("Fig_Blinding.pdf", width = 5, height = 5)
+barplot(t(matrix(c(table(demData$Guessed.group[demData$Treatment == "Oxazepam"]), table(demData$Guessed.group[demData$Treatment == "Placebo"])), nr = 5)), beside = TRUE, names.arg = c("Placebo", "Likely Placebo", "Equivocal", "Likely Oxa", "Oxazepam"), ylab = "n")
+legend("topleft", c("Oxazepam", "Placebo"), fill = gray.colors(2), bty = "n")
+dev.off()
+
+wilcox.test(as.numeric(Guessed.group) ~ Treatment, data = demData, alternative = "greater")
