@@ -5,6 +5,11 @@
 library(RCurl) # To read data from GitHub
 library(nlme) # To build mixed-effects models
 library(effects) # To get confidence intervals on estimates
+library(RColorBrewer) # To get good diverging colors for graphs
+
+# Define colors for later
+col1 = brewer.pal(3, "Dark2")[1]
+col2 = brewer.pal(3, "Dark2")[2]
 
 # Read data
 demDataURL <- getURL("https://raw.githubusercontent.com/GNilsonne/Data-and-analysis-code-Oxazepam-and-emotion/master/demographics.csv", ssl.verifypeer = FALSE)
@@ -113,22 +118,25 @@ intervals(lme1)
 # Plot effects
 eff1 <- effect("Treatment * FirstOrSecond", lme1)
 
-pdf("Fig_STAIS.pdf", width = 5, height = 5)
+pdf("Fig_STAIS.pdf", width = 4, height = 4)
 plot(eff1$fit[c(2, 4)],
      frame.plot = F,
      xaxt = "n",
+     yaxt = "n",
      type = "b",
      xlab = "",
-     ylab = "STAI-S",
+     ylab = "STAI-S score",
      xlim = c(1, 2.1),
-     ylim = c(33, 38),
-     col = "blue")
-lines(c(1.1,2.1), eff1$fit[c(1, 3)], type = "b", col = "red", pch = 16)
-lines(c(1, 1), c((eff1$upper[2]), (eff1$lower[2])), col = "blue")
-lines(c(2, 2), c((eff1$upper[4]), (eff1$lower[4])), col = "blue")
-lines(c(1.1, 1.1), c((eff1$upper[1]), (eff1$lower[1])), col = "red")
-lines(c(2.1, 2.1), c((eff1$upper[3]), (eff1$lower[3])), col = "red")
-axis(1, labels = c("First", "Second"), at = c(1.05, 2.05))
+     ylim = c(32, 38),
+     col = col1,
+     main = "B. State anxiety")
+lines(c(1.1,2.1), eff1$fit[c(1, 3)], type = "b", col = col2, pch = 16)
+lines(c(1, 1), c((eff1$upper[2]), (eff1$lower[2])), col = col1)
+lines(c(2, 2), c((eff1$upper[4]), (eff1$lower[4])), col = col1)
+lines(c(1.1, 1.1), c((eff1$upper[1]), (eff1$lower[1])), col = col2)
+lines(c(2.1, 2.1), c((eff1$upper[3]), (eff1$lower[3])), col = col2)
+axis(1, labels = c("Before", "After"), at = c(1.05, 2.05))
+axis(2, at = c(32, 34, 36, 38))
 #legend("top", col = c("blue", "red"), pch = c(1, 16), legend = c("Placebo", "Oxazepam"), bty = "n")
 dev.off()
 
