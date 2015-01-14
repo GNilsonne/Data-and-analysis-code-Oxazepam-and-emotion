@@ -5,6 +5,11 @@
 library(RCurl) # To read data from GitHub
 library(nlme) # To build mixed-effects models
 library(effects) # To get confidence intervals on estimates
+library(RColorBrewer) # To get good diverging colors for graphs
+
+# Define colors for later
+col1 = brewer.pal(3, "Dark2")[1]
+col2 = brewer.pal(3, "Dark2")[2]
 
 # Read data
 RTDataURL <- getURL("https://raw.githubusercontent.com/GNilsonne/Data-and-analysis-code-Oxazepam-and-emotion/master/Reaction-time-test/Reaction_time_data.csv", ssl.verifypeer = FALSE)
@@ -33,23 +38,25 @@ intervals(lme1)
 # Plot effects with transformation back to original scale
 eff1 <- effect("Treatment * FirstOrSecondTest", lme1)
 
-pdf("Fig_RT.pdf", width = 5, height = 5)
+pdf("Fig_RT.pdf", width = 4, height = 4)
 plot(1/eff1$fit[c(1, 3)],
      frame.plot = F,
      xaxt = "n",
+     yaxt = "n",
      type = "b",
      xlab = "",
-     ylab = "Reaction time (ms)",
+     ylab = "ms",
      xlim = c(1, 2.1),
      ylim = c(300, 350),
      pch = 16,
-     col = "red")
-lines(c(1.1,2.1), 1/eff1$fit[c(2, 4)], type = "b", col = "blue", pch = 1)
-lines(c(1, 1), c((1/eff1$upper[1]), (1/eff1$lower[1])), col = "red")
-lines(c(2, 2), c((1/eff1$upper[3]), (1/eff1$lower[3])), col = "red")
-lines(c(1.1, 1.1), c((1/eff1$upper[2]), (1/eff1$lower[2])), col = "blue")
-lines(c(2.1, 2.1), c((1/eff1$upper[4]), (1/eff1$lower[4])), col = "blue")
-axis(1, labels = c("First", "Second"), at = c(1.05, 2.05))
-legend("topleft", col = c("blue", "red"), pch = c(1, 16), legend = c("Placebo", "Oxazepam"), bty = "n")
+     col = col1,
+     main = "Reaction times")
+lines(c(1.1,2.1), 1/eff1$fit[c(2, 4)], type = "b", col = col2, pch = 1)
+lines(c(1, 1), c((1/eff1$upper[1]), (1/eff1$lower[1])), col = col1)
+lines(c(2, 2), c((1/eff1$upper[3]), (1/eff1$lower[3])), col = col1)
+lines(c(1.1, 1.1), c((1/eff1$upper[2]), (1/eff1$lower[2])), col = col2)
+lines(c(2.1, 2.1), c((1/eff1$upper[4]), (1/eff1$lower[4])), col = col2)
+axis(1, labels = c("Before", "After"), at = c(1.05, 2.05))
+axis(2, at = c(300, 350))
+legend("topleft", col = c(col2, col1), pch = c(1, 16), legend = c("Placebo", "Oxazepam"), bty = "n")
 dev.off()
-
