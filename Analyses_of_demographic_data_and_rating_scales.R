@@ -162,7 +162,7 @@ intervals(lme2)
 # Plot effects
 eff2 <- effect("Treatment * FirstOrSecond", lme2)
 
-pdf("Fig_VAS.pdf", width = 5, height = 5)
+pdf("Fig_VAS.pdf", width = 4, height = 4)
 plot(eff2$fit[c(2, 4)],
      frame.plot = F,
      xaxt = "n",
@@ -171,13 +171,14 @@ plot(eff2$fit[c(2, 4)],
      ylab = "Volts required for VAS 80",
      xlim = c(1, 2.1),
      ylim = c(65, 85),
-     col = "blue")
-lines(c(1.1,2.1), eff2$fit[c(1, 3)], type = "b", col = "red", pch = 16)
-lines(c(1, 1), c((eff2$upper[2]), (eff2$lower[2])), col = "blue")
-lines(c(2, 2), c((eff2$upper[4]), (eff2$lower[4])), col = "blue")
-lines(c(1.1, 1.1), c((eff2$upper[1]), (eff2$lower[1])), col = "red")
-lines(c(2.1, 2.1), c((eff2$upper[3]), (eff2$lower[3])), col = "red")
-axis(1, labels = c("First", "Second"), at = c(1.05, 2.05))
+     col = col1,
+     main = "C. Pain thresholds")
+lines(c(1.1,2.1), eff2$fit[c(1, 3)], type = "b", col = col2, pch = 16)
+lines(c(1, 1), c((eff2$upper[2]), (eff2$lower[2])), col = col1)
+lines(c(2, 2), c((eff2$upper[4]), (eff2$lower[4])), col = col1)
+lines(c(1.1, 1.1), c((eff2$upper[1]), (eff2$lower[1])), col = col2)
+lines(c(2.1, 2.1), c((eff2$upper[3]), (eff2$lower[3])), col = col2)
+axis(1, labels = c("Before", "After"), at = c(1.05, 2.05))
 #legend("top", col = c("blue", "red"), pch = c(1, 16), legend = c("Placebo", "Oxazepam"), bty = "n")
 dev.off()
 
@@ -186,9 +187,17 @@ dev.off()
 demData$Guessed.group <- factor(demData$Guessed.group, levels = c("Placebo", "Likely_placebo", "Equivocal", "Likely_oxa", "Oxazepam"), ordered = TRUE)
 demData$Guessed.group[demData$Included_EP == 0] <- NA
 
-pdf("Fig_Blinding.pdf", width = 5, height = 5)
-barplot(t(matrix(c(table(demData$Guessed.group[demData$Treatment == "Oxazepam"]), table(demData$Guessed.group[demData$Treatment == "Placebo"])), nr = 5)), beside = TRUE, names.arg = c("Placebo", "Likely Placebo", "Equivocal", "Likely Oxa", "Oxazepam"), ylab = "n")
-legend("topleft", c("Oxazepam", "Placebo"), fill = gray.colors(2), bty = "n")
+pdf("Fig_Blinding.pdf", width = 4, height = 4)
+barplot(t(matrix(c(table(demData$Guessed.group[demData$Treatment == "Placebo"]), table(demData$Guessed.group[demData$Treatment == "Oxazepam"])), nr = 5)), 
+        beside = TRUE, 
+        names.arg = c("Oxa", "Likely Oxa", "Equivocal", "Likely Placebo", "Placebo"), 
+        ylab = "n",
+        yaxt = "n",
+        col = c(col2, NA),
+        border = c(NA, col1),
+        lwd = 5,
+        main = "D. Guessed group")
+axis(2, at = c(0, 2, 4, 6))
 dev.off()
 
 wilcox.test(as.numeric(Guessed.group) ~ Treatment, data = demData, alternative = "greater")
