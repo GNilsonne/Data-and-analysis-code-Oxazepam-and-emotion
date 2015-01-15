@@ -11,6 +11,17 @@ library(RColorBrewer) # To get good diverging colors for graphs
 col1 = brewer.pal(3, "Dark2")[1]
 col2 = brewer.pal(3, "Dark2")[2]
 
+
+add.alpha <- function(col, alpha=1){ ## Function to add an alpha value to a colour, from: http://www.magesblog.com/2013/04/how-to-change-alpha-value-of-colours-in.html
+  if(missing(col))
+    stop("Please provide a vector of colours.")
+  apply(sapply(col, col2rgb)/255, 2, 
+        function(x) 
+          rgb(x[1], x[2], x[3], alpha=alpha))  
+}
+
+col3 <- add.alpha(col1, alpha = 0.2)
+
 # Read data
 demDataURL <- getURL("https://raw.githubusercontent.com/GNilsonne/Data-and-analysis-code-Oxazepam-and-emotion/master/demographics.csv", ssl.verifypeer = FALSE)
 demData <- read.csv(text = demDataURL)
@@ -190,14 +201,17 @@ demData$Guessed.group[demData$Included_EP == 0] <- NA
 pdf("Fig_Blinding.pdf", width = 4, height = 4)
 barplot(t(matrix(c(table(demData$Guessed.group[demData$Treatment == "Placebo"]), table(demData$Guessed.group[demData$Treatment == "Oxazepam"])), nr = 5)), 
         beside = TRUE, 
-        names.arg = c("Oxa", "Likely Oxa", "Equivocal", "Likely Placebo", "Placebo"), 
+        names.arg = c("Placebo", "", "Equivocal", "", "Oxazepam"), 
+        xlab = "Guessed group",
         ylab = "n",
         yaxt = "n",
-        col = c(col2, NA),
-        border = c(NA, col1),
+        col = c(col3, col2),
+        border = c(col1, col2),
         lwd = 5,
-        main = "D. Guessed group")
+        main = "D. Efficacy of blinding")
 axis(2, at = c(0, 2, 4, 6))
+legend(c(0, 6.4), legend = c("Placebo", "Oxazepam"), fill = c(col3, col2), border = c(col1, col2), bty = "n")
 dev.off()
 
-wilcox.test(as.numeric(Guessed.group) ~ Treatment, data = demData, alternative = "greater")
+test1 <- wilcox.test(as.numeric(Guessed.group) ~ Treatment, data = demData, alternative = "greater", paired = F, conf.int = T)
+test1
