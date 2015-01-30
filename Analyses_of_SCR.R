@@ -6,11 +6,17 @@ library(RCurl) # To read data from GitHub
 library(nlme) # To build mixed-effects models
 library(effects) # To get confidence intervals on estimates
 library(RColorBrewer) # To get good colors for graphs
-#library(lattice) # To make dotplots
+library(latticeExtra) # To make dotcharts
 
 # Define colors for later
-col1 = brewer.pal(3, "Dark2")[1]
-col2 = brewer.pal(3, "Dark2")[2]
+col1 = brewer.pal(8, "Dark2")[1]
+col2 = brewer.pal(8, "Dark2")[2]
+col3 = brewer.pal(8, "Dark2")[3]
+col4 = brewer.pal(8, "Dark2")[4]
+col5 = brewer.pal(8, "Dark2")[5]
+col6 = brewer.pal(8, "Dark2")[6]
+col7 = brewer.pal(8, "Dark2")[7]
+col8 = brewer.pal(8, "Dark2")[8]
 
 # Read data
 SCRDataURL <- getURL("https://raw.githubusercontent.com/GNilsonne/Data-and-analysis-code-Oxazepam-and-emotion/master/SCR.csv", ssl.verifypeer = FALSE)
@@ -42,14 +48,17 @@ SCRData$OtherHigh <- as.numeric(SCRData$Condition)*as.numeric(SCRData$Stimulus)
 SCRData$OtherHigh[SCRData$OtherHigh == 1] <- 1
 SCRData$OtherHigh[SCRData$OtherHigh != 1] <- 0
 
+# z-transform IRI-EC
+SCRData$IRI_EC_z <- scale(SCRData$IRI_EC)
+
 # Make a regressor for predictor in other high condition only
-SCRData$IRI_EC_OtherHigh <- SCRData$IRI_EC * SCRData$OtherHigh
+SCRData$IRI_EC_z_OtherHigh <- SCRData$IRI_EC_z * SCRData$OtherHigh
 
 # Mean center the new regressor
-SCRData$IRI_EC_OtherHigh[SCRData$IRI_EC_OtherHigh > 0 & !is.na(SCRData$IRI_EC_OtherHigh)] <- SCRData$IRI_EC_OtherHigh[SCRData$IRI_EC_OtherHigh > 0 & !is.na(SCRData$IRI_EC_OtherHigh)] - mean(SCRData$IRI_EC_OtherHigh[SCRData$IRI_EC_OtherHigh > 0 & !is.na(SCRData$IRI_EC_OtherHigh)], na.rm = TRUE)
+SCRData$IRI_EC_z_OtherHigh[SCRData$IRI_EC_z_OtherHigh > 0 & !is.na(SCRData$IRI_EC_z_OtherHigh)] <- SCRData$IRI_EC_z_OtherHigh[SCRData$IRI_EC_z_OtherHigh > 0 & !is.na(SCRData$IRI_EC_z_OtherHigh)] - mean(SCRData$IRI_EC_z_OtherHigh[SCRData$IRI_EC_z_OtherHigh > 0 & !is.na(SCRData$IRI_EC_z_OtherHigh)], na.rm = TRUE)
 
 # Build model
-lme1 <- lme(sqrtSCR ~ Treatment*Stimulus*Condition + Wave + IRI_EC + IRI_EC_OtherHigh, data = SCRData, random = ~1|Subject, na.action = na.omit)
+lme1 <- lme(sqrtSCR ~ Treatment*Stimulus*Condition + Wave + IRI_EC_z + IRI_EC_z_OtherHigh, data = SCRData, random = ~1|Subject, na.action = na.omit)
 
 plot(lme1)
 summary(lme1)
@@ -106,78 +115,206 @@ dev.off()
 # Compare plots to less custom-generated output for verification
 plot(effect("Treatment*Stimulus*Condition", lme1))
 plot(effect("Stimulus*Condition", lme1))
-plot(effect("IRI_EC_OtherHigh", lme1))
+plot(effect("IRI_EC_z_OtherHigh", lme1))
 
 # Analyse other rating scales as predictors
 # Since rating scales may be collinear, we include them one by one
 # The procedure follows the same logic as above
 
 # IRI-PT
-SCRData$IRI_PT_OtherHigh <- SCRData$IRI_PT * SCRData$OtherHigh
-SCRData$IRI_PT_OtherHigh[SCRData$IRI_PT_OtherHigh > 0 & !is.na(SCRData$IRI_PT_OtherHigh)] <- SCRData$IRI_PT_OtherHigh[SCRData$IRI_PT_OtherHigh > 0 & !is.na(SCRData$IRI_PT_OtherHigh)] - mean(SCRData$IRI_PT_OtherHigh[SCRData$IRI_PT_OtherHigh > 0 & !is.na(SCRData$IRI_PT_OtherHigh)], na.rm = TRUE)
-lme2 <- lme(sqrtSCR ~ Treatment*Stimulus*Condition + Wave + IRI_PT + IRI_PT_OtherHigh, data = SCRData, random = ~1|Subject, na.action = na.omit)
+SCRData$IRI_PT_z <- scale(SCRData$IRI_PT)
+SCRData$IRI_PT_z_OtherHigh <- SCRData$IRI_PT_z * SCRData$OtherHigh
+SCRData$IRI_PT_z_OtherHigh[SCRData$IRI_PT_z_OtherHigh > 0 & !is.na(SCRData$IRI_PT_z_OtherHigh)] <- SCRData$IRI_PT_z_OtherHigh[SCRData$IRI_PT_z_OtherHigh > 0 & !is.na(SCRData$IRI_PT_z_OtherHigh)] - mean(SCRData$IRI_PT_z_OtherHigh[SCRData$IRI_PT_z_OtherHigh > 0 & !is.na(SCRData$IRI_PT_z_OtherHigh)], na.rm = TRUE)
+lme2 <- lme(sqrtSCR ~ Treatment*Stimulus*Condition + Wave + IRI_PT_z + IRI_PT_z_OtherHigh, data = SCRData, random = ~1|Subject, na.action = na.omit)
 plot(lme2)
 summary(lme2)
 intervals(lme2)
 
 # IRI-PD
-SCRData$IRI_PD_OtherHigh <- SCRData$IRI_PD * SCRData$OtherHigh
-SCRData$IRI_PD_OtherHigh[SCRData$IRI_PD_OtherHigh > 0 & !is.na(SCRData$IRI_PD_OtherHigh)] <- SCRData$IRI_PD_OtherHigh[SCRData$IRI_PD_OtherHigh > 0 & !is.na(SCRData$IRI_PD_OtherHigh)] - mean(SCRData$IRI_PD_OtherHigh[SCRData$IRI_PD_OtherHigh > 0 & !is.na(SCRData$IRI_PD_OtherHigh)], na.rm = TRUE)
-lme3 <- lme(sqrtSCR ~ Treatment*Stimulus*Condition + Wave + IRI_PD + IRI_PD_OtherHigh, data = SCRData, random = ~1|Subject, na.action = na.omit)
+SCRData$IRI_PD_z <- scale(SCRData$IRI_PD)
+SCRData$IRI_PD_z_OtherHigh <- SCRData$IRI_PD_z * SCRData$OtherHigh
+SCRData$IRI_PD_z_OtherHigh[SCRData$IRI_PD_z_OtherHigh > 0 & !is.na(SCRData$IRI_PD_z_OtherHigh)] <- SCRData$IRI_PD_z_OtherHigh[SCRData$IRI_PD_z_OtherHigh > 0 & !is.na(SCRData$IRI_PD_z_OtherHigh)] - mean(SCRData$IRI_PD_z_OtherHigh[SCRData$IRI_PD_z_OtherHigh > 0 & !is.na(SCRData$IRI_PD_z_OtherHigh)], na.rm = TRUE)
+lme3 <- lme(sqrtSCR ~ Treatment*Stimulus*Condition + Wave + IRI_PD_z + IRI_PD_z_OtherHigh, data = SCRData, random = ~1|Subject, na.action = na.omit)
 plot(lme3)
 summary(lme3)
 intervals(lme3)
 
 # IRI-F
-SCRData$IRI_F_OtherHigh <- SCRData$IRI_F * SCRData$OtherHigh
-SCRData$IRI_F_OtherHigh[SCRData$IRI_F_OtherHigh > 0 & !is.na(SCRData$IRI_F_OtherHigh)] <- SCRData$IRI_F_OtherHigh[SCRData$IRI_F_OtherHigh > 0 & !is.na(SCRData$IRI_F_OtherHigh)] - mean(SCRData$IRI_F_OtherHigh[SCRData$IRI_F_OtherHigh > 0 & !is.na(SCRData$IRI_F_OtherHigh)], na.rm = TRUE)
-lme4 <- lme(sqrtSCR ~ Treatment*Stimulus*Condition + Wave + IRI_F + IRI_F_OtherHigh, data = SCRData, random = ~1|Subject, na.action = na.omit)
+SCRData$IRI_F_z <- scale(SCRData$IRI_F)
+SCRData$IRI_F_z_OtherHigh <- SCRData$IRI_F_z * SCRData$OtherHigh
+SCRData$IRI_F_z_OtherHigh[SCRData$IRI_F_z_OtherHigh > 0 & !is.na(SCRData$IRI_F_z_OtherHigh)] <- SCRData$IRI_F_z_OtherHigh[SCRData$IRI_F_z_OtherHigh > 0 & !is.na(SCRData$IRI_F_z_OtherHigh)] - mean(SCRData$IRI_F_z_OtherHigh[SCRData$IRI_F_z_OtherHigh > 0 & !is.na(SCRData$IRI_F_z_OtherHigh)], na.rm = TRUE)
+lme4 <- lme(sqrtSCR ~ Treatment*Stimulus*Condition + Wave + IRI_F_z + IRI_F_z_OtherHigh, data = SCRData, random = ~1|Subject, na.action = na.omit)
 plot(lme4)
 summary(lme4)
 intervals(lme4)
 
 # STAI-T
-#SCRData$IRI_F_OtherHigh <- SCRData$IRI_F * SCRData$OtherHigh
-#SCRData$IRI_F_OtherHigh[SCRData$IRI_F_OtherHigh > 0 & !is.na(SCRData$IRI_F_OtherHigh)] <- SCRData$IRI_F_OtherHigh[SCRData$IRI_F_OtherHigh > 0 & !is.na(SCRData$IRI_F_OtherHigh)] - mean(SCRData$IRI_F_OtherHigh[SCRData$IRI_F_OtherHigh > 0 & !is.na(SCRData$IRI_F_OtherHigh)], na.rm = TRUE)
-#lme4 <- lme(sqrtSCR ~ Treatment*Stimulus*Condition + Wave + IRI_F + IRI_F_OtherHigh, data = SCRData, random = ~1|Subject, na.action = na.omit)
-#plot(lme4)
-#summary(lme4)
-#intervals(lme4)
+SCRData$STAI.T_z <- scale(SCRData$STAI.T)
+SCRData$STAI.T_z_OtherHigh <- SCRData$STAI.T_z * SCRData$OtherHigh
+SCRData$STAI.T_z_OtherHigh[SCRData$STAI.T_z_OtherHigh > 0 & !is.na(SCRData$STAI.T_z_OtherHigh)] <- SCRData$STAI.T_z_OtherHigh[SCRData$STAI.T_z_OtherHigh > 0 & !is.na(SCRData$STAI.T_z_OtherHigh)] - mean(SCRData$STAI.T_z_OtherHigh[SCRData$STAI.T_z_OtherHigh > 0 & !is.na(SCRData$STAI.T_z_OtherHigh)], na.rm = TRUE)
+lme5 <- lme(sqrtSCR ~ Treatment*Stimulus*Condition + Wave + STAI.T_z + STAI.T_z_OtherHigh, data = SCRData, random = ~1|Subject, na.action = na.omit)
+plot(lme5)
+summary(lme5)
+intervals(lme5)
 
 # TAS-20
-SCRData$TAS.20_OtherHigh <- SCRData$TAS.20 * SCRData$OtherHigh
-SCRData$TAS.20_OtherHigh[SCRData$TAS.20_OtherHigh > 0 & !is.na(SCRData$TAS.20_OtherHigh)] <- SCRData$TAS.20_OtherHigh[SCRData$TAS.20_OtherHigh > 0 & !is.na(SCRData$TAS.20_OtherHigh)] - mean(SCRData$TAS.20_OtherHigh[SCRData$TAS.20_OtherHigh > 0 & !is.na(SCRData$TAS.20_OtherHigh)], na.rm = TRUE)
-lme6 <- lme(sqrtSCR ~ Treatment*Stimulus*Condition + Wave + TAS.20 + TAS.20_OtherHigh, data = SCRData, random = ~1|Subject, na.action = na.omit)
+SCRData$TAS.20_z <- scale(SCRData$TAS.20)
+SCRData$TAS.20_z_OtherHigh <- SCRData$TAS.20_z * SCRData$OtherHigh
+SCRData$TAS.20_z_OtherHigh[SCRData$TAS.20_z_OtherHigh > 0 & !is.na(SCRData$TAS.20_z_OtherHigh)] <- SCRData$TAS.20_z_OtherHigh[SCRData$TAS.20_z_OtherHigh > 0 & !is.na(SCRData$TAS.20_z_OtherHigh)] - mean(SCRData$TAS.20_z_OtherHigh[SCRData$TAS.20_z_OtherHigh > 0 & !is.na(SCRData$TAS.20_z_OtherHigh)], na.rm = TRUE)
+lme6 <- lme(sqrtSCR ~ Treatment*Stimulus*Condition + Wave + TAS.20_z + TAS.20_z_OtherHigh, data = SCRData, random = ~1|Subject, na.action = na.omit)
 plot(lme6)
 summary(lme6)
 intervals(lme6)
 
+# PPI-R-SCI
+SCRData$PPI_SCI_z <- scale(SCRData$PPI_1_SCI_R)
+SCRData$PPI_SCI_z_OtherHigh <- SCRData$PPI_SCI_z * SCRData$OtherHigh
+SCRData$PPI_SCI_z_OtherHigh[SCRData$PPI_SCI_z_OtherHigh > 0 & !is.na(SCRData$PPI_SCI_z_OtherHigh)] <- SCRData$PPI_SCI_z_OtherHigh[SCRData$PPI_SCI_z_OtherHigh > 0 & !is.na(SCRData$PPI_SCI_z_OtherHigh)] - mean(SCRData$PPI_SCI_z_OtherHigh[SCRData$PPI_SCI_z_OtherHigh > 0 & !is.na(SCRData$PPI_SCI_z_OtherHigh)], na.rm = TRUE)
+lme7 <- lme(sqrtSCR ~ Treatment*Stimulus*Condition + Wave + PPI_SCI_z + PPI_SCI_z_OtherHigh, data = SCRData, random = ~1|Subject, na.action = na.omit)
+plot(lme7)
+summary(lme7)
+intervals(lme7)
+
+# PPI-R-FD
+SCRData$PPI_FD_z <- scale(SCRData$PPI_1_FD_R)
+SCRData$PPI_FD_z_OtherHigh <- SCRData$PPI_FD_z * SCRData$OtherHigh
+SCRData$PPI_FD_z_OtherHigh[SCRData$PPI_FD_z_OtherHigh > 0 & !is.na(SCRData$PPI_FD_z_OtherHigh)] <- SCRData$PPI_FD_z_OtherHigh[SCRData$PPI_FD_z_OtherHigh > 0 & !is.na(SCRData$PPI_FD_z_OtherHigh)] - mean(SCRData$PPI_FD_z_OtherHigh[SCRData$PPI_FD_z_OtherHigh > 0 & !is.na(SCRData$PPI_FD_z_OtherHigh)], na.rm = TRUE)
+lme8 <- lme(sqrtSCR ~ Treatment*Stimulus*Condition + Wave + PPI_FD_z + PPI_FD_z_OtherHigh, data = SCRData, random = ~1|Subject, na.action = na.omit)
+plot(lme8)
+summary(lme8)
+intervals(lme8)
+
+# PPI-R-C
+SCRData$PPI_C_z <- scale(SCRData$PPI_1_C_R)
+SCRData$PPI_C_z_OtherHigh <- SCRData$PPI_C_z * SCRData$OtherHigh
+SCRData$PPI_C_z_OtherHigh[SCRData$PPI_C_z_OtherHigh > 0 & !is.na(SCRData$PPI_C_z_OtherHigh)] <- SCRData$PPI_C_z_OtherHigh[SCRData$PPI_C_z_OtherHigh > 0 & !is.na(SCRData$PPI_C_z_OtherHigh)] - mean(SCRData$PPI_C_z_OtherHigh[SCRData$PPI_C_z_OtherHigh > 0 & !is.na(SCRData$PPI_C_z_OtherHigh)], na.rm = TRUE)
+lme9 <- lme(sqrtSCR ~ Treatment*Stimulus*Condition + Wave + PPI_C_z + PPI_C_z_OtherHigh, data = SCRData, random = ~1|Subject, na.action = na.omit)
+plot(lme9)
+summary(lme9)
+intervals(lme9)
+
 # Make plots to compare effects for different scales
-col3 = brewer.pal(6, "Dark2")[3]
-col4 = brewer.pal(6, "Dark2")[4]
-col5 = brewer.pal(6, "Dark2")[5]
+# Put data in new frame
+data_main <- data.frame(scale = "PPI-R-C", beta = intervals(lme9)$fixed[6, 2], lower = intervals(lme9)$fixed[6, 1], upper = intervals(lme9)$fixed[6, 3], group = "PPI")
+data_main <- rbind(data_main, data.frame(scale = "PPI-R-FD", beta = intervals(lme8)$fixed[6, 2], lower = intervals(lme8)$fixed[6, 1], upper = intervals(lme8)$fixed[6, 3], group = "PPI"))
+data_main <- rbind(data_main, data.frame(scale = "PPI-R-SCI", beta = intervals(lme7)$fixed[6, 2], lower = intervals(lme7)$fixed[6, 1], upper = intervals(lme7)$fixed[6, 3], group = "PPI"))
+data_main <- rbind(data_main, data.frame(scale = "TAS-20", beta = intervals(lme6)$fixed[6, 2], lower = intervals(lme6)$fixed[6, 1], upper = intervals(lme6)$fixed[6, 3], group = "TAS"))
+data_main <- rbind(data_main, data.frame(scale = "STAI-T", beta = intervals(lme5)$fixed[6, 2], lower = intervals(lme5)$fixed[6, 1], upper = intervals(lme5)$fixed[6, 3], group = "STAI"))
+data_main <- rbind(data_main, data.frame(scale = "IRI-F", beta = intervals(lme4)$fixed[6, 2], lower = intervals(lme4)$fixed[6, 1], upper = intervals(lme4)$fixed[6, 3], group = "IRI"))
+data_main <- rbind(data_main, data.frame(scale = "IRI-PD", beta = intervals(lme3)$fixed[6, 2], lower = intervals(lme3)$fixed[6, 1], upper = intervals(lme3)$fixed[6, 3], group = "IRI"))
+data_main <- rbind(data_main, data.frame(scale = "IRI-PT", beta = intervals(lme2)$fixed[6, 2], lower = intervals(lme2)$fixed[6, 1], upper = intervals(lme2)$fixed[6, 3], group = "IRI"))
+data_main <- rbind(data_main, data.frame(scale = "IRI-EC", beta = intervals(lme1)$fixed[6, 2], lower = intervals(lme1)$fixed[6, 1], upper = intervals(lme1)$fixed[6, 3], group = "IRI"))
 
-data_main <- data.frame(scale = "IRI-EC", beta = intervals(lme1)$fixed[6, 2], lower = intervals(lme1)$fixed[6, 1], upper = intervals(lme1)$fixed[6, 3], group = "IRI", col = col3)
-data_main <- rbind(data_main, data.frame(scale = "IRI-PT", beta = intervals(lme2)$fixed[6, 2], lower = intervals(lme2)$fixed[6, 1], upper = intervals(lme2)$fixed[6, 3], group = "IRI", col = col3))
-data_main <- rbind(data_main, data.frame(scale = "IRI-PD", beta = intervals(lme3)$fixed[6, 2], lower = intervals(lme3)$fixed[6, 1], upper = intervals(lme3)$fixed[6, 3], group = "IRI", col = col3))
-data_main <- rbind(data_main, data.frame(scale = "IRI-F", beta = intervals(lme4)$fixed[6, 2], lower = intervals(lme4)$fixed[6, 1], upper = intervals(lme4)$fixed[6, 3], group = "IRI", col = col3))
-data_main <- rbind(data_main, data.frame(scale = "TAS-20", beta = intervals(lme6)$fixed[6, 2], lower = intervals(lme6)$fixed[6, 1], upper = intervals(lme6)$fixed[6, 3], group = "TAS", col = col4))
+# Make plot
+pdf("Fig_SCR3.pdf", width = 4, height = 4)
+axis.L <- function(side, ..., line.col){
+  if (side %in% c("bottom", "left")) {
+    col <- trellis.par.get("axis.text")$col
+    axis.default(side, ..., line.col = col)
+  if (side == "bottom")
+    grid::grid.lines(y = 0)
+  }
+}
+
+sty <- list()
+sty$axis.line$col <- NA
+sty$strip.border$col <- NA
+sty$strip.background$col <- NA
+segplot(scale ~ lower + upper, data = data_main, 
+        centers = beta, 
+        lwd = 2,
+        draw.bands = FALSE,
+        col = c(col8, col8, col8, col3, col6, col5, col5, col5, col5),
+        par.settings = sty,
+        axis=axis.L,
+        xlab = "Beta, 95% CI",
+        main = "X. SCR predictors across conditions",
+        panel = function (x,y,z,...){
+          panel.segplot(x,y,z,...)
+          panel.abline(v=0,lty=2)
+        })
+dev.off()
+
+# Put data in new frame
+data_emp <- data.frame(scale = "PPI-R-C", beta = intervals(lme9)$fixed[6, 2], lower = intervals(lme9)$fixed[6, 1], upper = intervals(lme9)$fixed[6, 3], group = "PPI")
+data_emp <- rbind(data_emp, data.frame(scale = "PPI-R-FD", beta = intervals(lme8)$fixed[7, 2], lower = intervals(lme8)$fixed[7, 1], upper = intervals(lme8)$fixed[7, 3], group = "PPI"))
+data_emp <- rbind(data_emp, data.frame(scale = "PPI-R-SCI", beta = intervals(lme7)$fixed[7, 2], lower = intervals(lme7)$fixed[7, 1], upper = intervals(lme7)$fixed[7, 3], group = "PPI"))
+data_emp <- rbind(data_emp, data.frame(scale = "TAS-20", beta = intervals(lme6)$fixed[7, 2], lower = intervals(lme6)$fixed[7, 1], upper = intervals(lme6)$fixed[7, 3], group = "TAS"))
+data_emp <- rbind(data_emp, data.frame(scale = "STAI-T", beta = intervals(lme5)$fixed[7, 2], lower = intervals(lme5)$fixed[7, 1], upper = intervals(lme5)$fixed[7, 3], group = "STAI"))
+data_emp <- rbind(data_emp, data.frame(scale = "IRI-F", beta = intervals(lme4)$fixed[7, 2], lower = intervals(lme4)$fixed[7, 1], upper = intervals(lme4)$fixed[7, 3], group = "IRI"))
+data_emp <- rbind(data_emp, data.frame(scale = "IRI-PD", beta = intervals(lme3)$fixed[7, 2], lower = intervals(lme3)$fixed[7, 1], upper = intervals(lme3)$fixed[7, 3], group = "IRI"))
+data_emp <- rbind(data_emp, data.frame(scale = "IRI-PT", beta = intervals(lme2)$fixed[7, 2], lower = intervals(lme2)$fixed[7, 1], upper = intervals(lme2)$fixed[7, 3], group = "IRI"))
+data_emp <- rbind(data_emp, data.frame(scale = "IRI-EC", beta = intervals(lme1)$fixed[7, 2], lower = intervals(lme1)$fixed[7, 1], upper = intervals(lme1)$fixed[7, 3], group = "IRI"))
+
+# Make plot
+pdf("Fig_SCR4.pdf", width = 4, height = 4)
+axis.L <- function(side, ..., line.col){
+  if (side %in% c("bottom", "left")) {
+    col <- trellis.par.get("axis.text")$col
+    axis.default(side, ..., line.col = col)
+    if (side == "bottom")
+      grid::grid.lines(y = 0)
+  }
+}
+
+sty <- list()
+sty$axis.line$col <- NA
+sty$strip.border$col <- NA
+sty$strip.background$col <- NA
+segplot(scale ~ lower + upper, data = data_emp, 
+        centers = beta, 
+        lwd = 2,
+        draw.bands = FALSE,
+        col = c(col8, col8, col8, col3, col6, col5, col5, col5, col5),
+        par.settings = sty,
+        axis=axis.L,
+        xlab = "Beta, 95% CI",
+        main = "X. SCR predictors for empathy",
+        panel = function (x,y,z,...){
+          panel.segplot(x,y,z,...)
+          panel.abline(v=0,lty=2)
+        })
+dev.off()
 
 
+
+
+
+# Old attempt at plotting, did not work very well
 par(bty = 'n') 
 dotchart(data_main$beta, 
          labels = data_main$scale, 
-         groups = data_main$groups, 
-         xlim = c(-0.05, 0.05),
-         main = "", 
-         xlab = "Beta", 
-         lcolor = "white", 
-         color = c(col3, col3, col3, col3, col4),
-         pch = 16)
+         #groups = data_main$groups, 
+         xlim = c(-0.03, 0.03),
+         main = "X. SCR, predictors across conditions", 
+         xlab = "Beta, 95% CI",
+         color = NULL,
+         lcolor = NULL,
+         cex = 0.8)
 abline(v = 0, lty = 2)
-lines(c(data_main$lower[1], data_main$upper[1]), c(1, 1), col = col3)
-lines(c(data_main$lower[2], data_main$upper[2]), c(2, 2), col = col3)
-lines(c(data_main$lower[3], data_main$upper[3]), c(3, 3), col = col3)
-lines(c(data_main$lower[4], data_main$upper[4]), c(4, 4), col = col3)
-lines(c(data_main$lower[5], data_main$upper[5]), c(5, 5), col = col4)
-lines(c(data_main$lower[6], data_main$upper[6]), c(6, 6), col = col3)
+
+lines(c(data_main$lower[1], data_main$upper[1]), c(1, 1), col = col8)
+lines(c(data_main$lower[2], data_main$upper[2]), c(2, 2), col = col8)
+lines(c(data_main$lower[3], data_main$upper[3]), c(3, 3), col = col8)
+lines(c(data_main$lower[4], data_main$upper[4]), c(4, 4), col = col7)
+lines(c(data_main$lower[5], data_main$upper[5]), c(5, 5), col = col6)
+lines(c(data_main$lower[6], data_main$upper[6]), c(6, 6), col = col5)
+lines(c(data_main$lower[7], data_main$upper[7]), c(7, 7), col = col5)
+lines(c(data_main$lower[8], data_main$upper[8]), c(8, 8), col = col5)
+lines(c(data_main$lower[9], data_main$upper[9]), c(9, 9), col = col5)
+
+points(data_main$beta[1], 1, col = col8, pch = 16)
+points(data_main$beta[2], 2, col = col8, pch = 16)
+points(data_main$beta[3], 3, col = col8, pch = 16)
+points(data_main$beta[4], 4, col = col7, pch = 16)
+points(data_main$beta[5], 5, col = col6, pch = 16)
+points(data_main$beta[6], 6, col = col5, pch = 16)
+points(data_main$beta[7], 7, col = col5, pch = 16)
+points(data_main$beta[8], 8, col = col5, pch = 16)
+points(data_main$beta[9], 9, col = col5, pch = 16)
+
+plot(1:7, 10*21:27)
+axTicks(1)
+axTicks(2)
+stopifnot(identical(axTicks(1), axTicks(3)),
+          identical(axTicks(2), axTicks(4)))
