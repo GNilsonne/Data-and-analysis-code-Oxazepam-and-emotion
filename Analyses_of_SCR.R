@@ -5,7 +5,8 @@
 library(RCurl) # To read data from GitHub
 library(nlme) # To build mixed-effects models
 library(effects) # To get confidence intervals on estimates
-library(RColorBrewer) # To get good diverging colors for graphs
+library(RColorBrewer) # To get good colors for graphs
+#library(lattice) # To make dotplots
 
 # Define colors for later
 col1 = brewer.pal(3, "Dark2")[1]
@@ -48,7 +49,7 @@ SCRData$IRI_EC_OtherHigh <- SCRData$IRI_EC * SCRData$OtherHigh
 SCRData$IRI_EC_OtherHigh[SCRData$IRI_EC_OtherHigh > 0 & !is.na(SCRData$IRI_EC_OtherHigh)] <- SCRData$IRI_EC_OtherHigh[SCRData$IRI_EC_OtherHigh > 0 & !is.na(SCRData$IRI_EC_OtherHigh)] - mean(SCRData$IRI_EC_OtherHigh[SCRData$IRI_EC_OtherHigh > 0 & !is.na(SCRData$IRI_EC_OtherHigh)], na.rm = TRUE)
 
 # Build model
-lme1 <- lme(sqrtSCR ~ Treatment*(Stimulus*Condition) + Wave + IRI_EC + IRI_EC_OtherHigh, data = SCRData, random = ~1|Subject, na.action = na.omit)
+lme1 <- lme(sqrtSCR ~ Treatment*Stimulus*Condition + Wave + IRI_EC + IRI_EC_OtherHigh, data = SCRData, random = ~1|Subject, na.action = na.omit)
 
 plot(lme1)
 summary(lme1)
@@ -106,3 +107,77 @@ dev.off()
 plot(effect("Treatment*Stimulus*Condition", lme1))
 plot(effect("Stimulus*Condition", lme1))
 plot(effect("IRI_EC_OtherHigh", lme1))
+
+# Analyse other rating scales as predictors
+# Since rating scales may be collinear, we include them one by one
+# The procedure follows the same logic as above
+
+# IRI-PT
+SCRData$IRI_PT_OtherHigh <- SCRData$IRI_PT * SCRData$OtherHigh
+SCRData$IRI_PT_OtherHigh[SCRData$IRI_PT_OtherHigh > 0 & !is.na(SCRData$IRI_PT_OtherHigh)] <- SCRData$IRI_PT_OtherHigh[SCRData$IRI_PT_OtherHigh > 0 & !is.na(SCRData$IRI_PT_OtherHigh)] - mean(SCRData$IRI_PT_OtherHigh[SCRData$IRI_PT_OtherHigh > 0 & !is.na(SCRData$IRI_PT_OtherHigh)], na.rm = TRUE)
+lme2 <- lme(sqrtSCR ~ Treatment*Stimulus*Condition + Wave + IRI_PT + IRI_PT_OtherHigh, data = SCRData, random = ~1|Subject, na.action = na.omit)
+plot(lme2)
+summary(lme2)
+intervals(lme2)
+
+# IRI-PD
+SCRData$IRI_PD_OtherHigh <- SCRData$IRI_PD * SCRData$OtherHigh
+SCRData$IRI_PD_OtherHigh[SCRData$IRI_PD_OtherHigh > 0 & !is.na(SCRData$IRI_PD_OtherHigh)] <- SCRData$IRI_PD_OtherHigh[SCRData$IRI_PD_OtherHigh > 0 & !is.na(SCRData$IRI_PD_OtherHigh)] - mean(SCRData$IRI_PD_OtherHigh[SCRData$IRI_PD_OtherHigh > 0 & !is.na(SCRData$IRI_PD_OtherHigh)], na.rm = TRUE)
+lme3 <- lme(sqrtSCR ~ Treatment*Stimulus*Condition + Wave + IRI_PD + IRI_PD_OtherHigh, data = SCRData, random = ~1|Subject, na.action = na.omit)
+plot(lme3)
+summary(lme3)
+intervals(lme3)
+
+# IRI-F
+SCRData$IRI_F_OtherHigh <- SCRData$IRI_F * SCRData$OtherHigh
+SCRData$IRI_F_OtherHigh[SCRData$IRI_F_OtherHigh > 0 & !is.na(SCRData$IRI_F_OtherHigh)] <- SCRData$IRI_F_OtherHigh[SCRData$IRI_F_OtherHigh > 0 & !is.na(SCRData$IRI_F_OtherHigh)] - mean(SCRData$IRI_F_OtherHigh[SCRData$IRI_F_OtherHigh > 0 & !is.na(SCRData$IRI_F_OtherHigh)], na.rm = TRUE)
+lme4 <- lme(sqrtSCR ~ Treatment*Stimulus*Condition + Wave + IRI_F + IRI_F_OtherHigh, data = SCRData, random = ~1|Subject, na.action = na.omit)
+plot(lme4)
+summary(lme4)
+intervals(lme4)
+
+# STAI-T
+#SCRData$IRI_F_OtherHigh <- SCRData$IRI_F * SCRData$OtherHigh
+#SCRData$IRI_F_OtherHigh[SCRData$IRI_F_OtherHigh > 0 & !is.na(SCRData$IRI_F_OtherHigh)] <- SCRData$IRI_F_OtherHigh[SCRData$IRI_F_OtherHigh > 0 & !is.na(SCRData$IRI_F_OtherHigh)] - mean(SCRData$IRI_F_OtherHigh[SCRData$IRI_F_OtherHigh > 0 & !is.na(SCRData$IRI_F_OtherHigh)], na.rm = TRUE)
+#lme4 <- lme(sqrtSCR ~ Treatment*Stimulus*Condition + Wave + IRI_F + IRI_F_OtherHigh, data = SCRData, random = ~1|Subject, na.action = na.omit)
+#plot(lme4)
+#summary(lme4)
+#intervals(lme4)
+
+# TAS-20
+SCRData$TAS.20_OtherHigh <- SCRData$TAS.20 * SCRData$OtherHigh
+SCRData$TAS.20_OtherHigh[SCRData$TAS.20_OtherHigh > 0 & !is.na(SCRData$TAS.20_OtherHigh)] <- SCRData$TAS.20_OtherHigh[SCRData$TAS.20_OtherHigh > 0 & !is.na(SCRData$TAS.20_OtherHigh)] - mean(SCRData$TAS.20_OtherHigh[SCRData$TAS.20_OtherHigh > 0 & !is.na(SCRData$TAS.20_OtherHigh)], na.rm = TRUE)
+lme6 <- lme(sqrtSCR ~ Treatment*Stimulus*Condition + Wave + TAS.20 + TAS.20_OtherHigh, data = SCRData, random = ~1|Subject, na.action = na.omit)
+plot(lme6)
+summary(lme6)
+intervals(lme6)
+
+# Make plots to compare effects for different scales
+col3 = brewer.pal(6, "Dark2")[3]
+col4 = brewer.pal(6, "Dark2")[4]
+col5 = brewer.pal(6, "Dark2")[5]
+
+data_main <- data.frame(scale = "IRI-EC", beta = intervals(lme1)$fixed[6, 2], lower = intervals(lme1)$fixed[6, 1], upper = intervals(lme1)$fixed[6, 3], group = "IRI", col = col3)
+data_main <- rbind(data_main, data.frame(scale = "IRI-PT", beta = intervals(lme2)$fixed[6, 2], lower = intervals(lme2)$fixed[6, 1], upper = intervals(lme2)$fixed[6, 3], group = "IRI", col = col3))
+data_main <- rbind(data_main, data.frame(scale = "IRI-PD", beta = intervals(lme3)$fixed[6, 2], lower = intervals(lme3)$fixed[6, 1], upper = intervals(lme3)$fixed[6, 3], group = "IRI", col = col3))
+data_main <- rbind(data_main, data.frame(scale = "IRI-F", beta = intervals(lme4)$fixed[6, 2], lower = intervals(lme4)$fixed[6, 1], upper = intervals(lme4)$fixed[6, 3], group = "IRI", col = col3))
+data_main <- rbind(data_main, data.frame(scale = "TAS-20", beta = intervals(lme6)$fixed[6, 2], lower = intervals(lme6)$fixed[6, 1], upper = intervals(lme6)$fixed[6, 3], group = "TAS", col = col4))
+
+
+par(bty = 'n') 
+dotchart(data_main$beta, 
+         labels = data_main$scale, 
+         groups = data_main$groups, 
+         xlim = c(-0.05, 0.05),
+         main = "", 
+         xlab = "Beta", 
+         lcolor = "white", 
+         color = c(col3, col3, col3, col3, col4),
+         pch = 16)
+abline(v = 0, lty = 2)
+lines(c(data_main$lower[1], data_main$upper[1]), c(1, 1), col = col3)
+lines(c(data_main$lower[2], data_main$upper[2]), c(2, 2), col = col3)
+lines(c(data_main$lower[3], data_main$upper[3]), c(3, 3), col = col3)
+lines(c(data_main$lower[4], data_main$upper[4]), c(4, 4), col = col3)
+lines(c(data_main$lower[5], data_main$upper[5]), c(5, 5), col = col4)
+lines(c(data_main$lower[6], data_main$upper[6]), c(6, 6), col = col3)
