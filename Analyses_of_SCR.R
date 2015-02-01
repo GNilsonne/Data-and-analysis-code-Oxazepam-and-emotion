@@ -1,5 +1,5 @@
 # Script to analyse ratings of unpleasantness in empathy experiment from the oxazepam and emotion project
-# Gustav Nilsonne 2015-01-10
+# Gustav Nilsonne 2015-02-01
 
 # Require packages
 library(RCurl) # To read data from GitHub
@@ -39,6 +39,9 @@ SCRData$Condition <- as.factor(SCRData$Condition)
 hist(SCRData$SCR)
 SCRData$sqrtSCR <- sqrt(SCRData$SCR)
 hist(SCRData$sqrtSCR)
+
+# Count participants with too high score on PPI-R Inconsistent Responding measure
+unique(SCRData$Subject[SCRData$PPI_1_IR >= 45])
 
 # Analyse data
 # Include IRI-EC terms in model since we wish to control for baseline empathic propensity 
@@ -167,7 +170,9 @@ summary(lme6)
 intervals(lme6)
 
 # PPI-R-SCI
-SCRData$PPI_SCI_z <- scale(SCRData$PPI_1_SCI_R)
+SCRData$PPI_SCI_z <- SCRData$PPI_1_SCI_R
+SCRData$PPI_SCI_z[SCRData$PPI_1_IR >= 45] <- NA # Exclude participants with too high scores on Inconsistent Responding measure
+SCRData$PPI_SCI_z <- scale(SCRData$PPI_SCI_z)
 SCRData$PPI_SCI_z_OtherHigh <- SCRData$PPI_SCI_z * SCRData$OtherHigh
 SCRData$PPI_SCI_z_OtherHigh[SCRData$PPI_SCI_z_OtherHigh > 0 & !is.na(SCRData$PPI_SCI_z_OtherHigh)] <- SCRData$PPI_SCI_z_OtherHigh[SCRData$PPI_SCI_z_OtherHigh > 0 & !is.na(SCRData$PPI_SCI_z_OtherHigh)] - mean(SCRData$PPI_SCI_z_OtherHigh[SCRData$PPI_SCI_z_OtherHigh > 0 & !is.na(SCRData$PPI_SCI_z_OtherHigh)], na.rm = TRUE)
 lme7 <- lme(sqrtSCR ~ Treatment*Stimulus*Condition + Wave + PPI_SCI_z + PPI_SCI_z_OtherHigh, data = SCRData, random = ~1|Subject, na.action = na.omit)
@@ -176,7 +181,9 @@ summary(lme7)
 intervals(lme7)
 
 # PPI-R-FD
-SCRData$PPI_FD_z <- scale(SCRData$PPI_1_FD_R)
+SCRData$PPI_FD_z <- SCRData$PPI_1_FD_R
+SCRData$PPI_FD_z[SCRData$PPI_1_IR >= 45] <- NA # Exclude participants with too high scores on Inconsistent Responding measure
+SCRData$PPI_FD_z <- scale(SCRData$PPI_FD_z)
 SCRData$PPI_FD_z_OtherHigh <- SCRData$PPI_FD_z * SCRData$OtherHigh
 SCRData$PPI_FD_z_OtherHigh[SCRData$PPI_FD_z_OtherHigh > 0 & !is.na(SCRData$PPI_FD_z_OtherHigh)] <- SCRData$PPI_FD_z_OtherHigh[SCRData$PPI_FD_z_OtherHigh > 0 & !is.na(SCRData$PPI_FD_z_OtherHigh)] - mean(SCRData$PPI_FD_z_OtherHigh[SCRData$PPI_FD_z_OtherHigh > 0 & !is.na(SCRData$PPI_FD_z_OtherHigh)], na.rm = TRUE)
 lme8 <- lme(sqrtSCR ~ Treatment*Stimulus*Condition + Wave + PPI_FD_z + PPI_FD_z_OtherHigh, data = SCRData, random = ~1|Subject, na.action = na.omit)
@@ -185,7 +192,9 @@ summary(lme8)
 intervals(lme8)
 
 # PPI-R-C
-SCRData$PPI_C_z <- scale(SCRData$PPI_1_C_R)
+SCRData$PPI_C_z <- SCRData$PPI_1_C_R
+SCRData$PPI_C_z[SCRData$PPI_1_IR >= 45] <- NA # Exclude participants with too high scores on Inconsistent Responding measure
+SCRData$PPI_C_z <- scale(SCRData$PPI_C_z)
 SCRData$PPI_C_z_OtherHigh <- SCRData$PPI_C_z * SCRData$OtherHigh
 SCRData$PPI_C_z_OtherHigh[SCRData$PPI_C_z_OtherHigh > 0 & !is.na(SCRData$PPI_C_z_OtherHigh)] <- SCRData$PPI_C_z_OtherHigh[SCRData$PPI_C_z_OtherHigh > 0 & !is.na(SCRData$PPI_C_z_OtherHigh)] - mean(SCRData$PPI_C_z_OtherHigh[SCRData$PPI_C_z_OtherHigh > 0 & !is.na(SCRData$PPI_C_z_OtherHigh)], na.rm = TRUE)
 lme9 <- lme(sqrtSCR ~ Treatment*Stimulus*Condition + Wave + PPI_C_z + PPI_C_z_OtherHigh, data = SCRData, random = ~1|Subject, na.action = na.omit)
@@ -228,7 +237,7 @@ segplot(scale ~ lower + upper, data = data_main,
         par.settings = sty,
         axis=axis.L,
         xlab = "Beta, 95% CI",
-        main = "X. SCR predictors across conditions",
+        main = "B. Skin conductance responses",
         panel = function (x,y,z,...){
           panel.segplot(x,y,z,...)
           panel.abline(v=0,lty=2)
@@ -269,14 +278,12 @@ segplot(scale ~ lower + upper, data = data_emp,
         par.settings = sty,
         axis=axis.L,
         xlab = "Beta, 95% CI",
-        main = "X. SCR predictors for empathy",
+        main = "B. Skin conductance responses",
         panel = function (x,y,z,...){
           panel.segplot(x,y,z,...)
           panel.abline(v=0,lty=2)
         })
 dev.off()
-
-
 
 
 
@@ -312,9 +319,3 @@ points(data_main$beta[6], 6, col = col5, pch = 16)
 points(data_main$beta[7], 7, col = col5, pch = 16)
 points(data_main$beta[8], 8, col = col5, pch = 16)
 points(data_main$beta[9], 9, col = col5, pch = 16)
-
-plot(1:7, 10*21:27)
-axTicks(1)
-axTicks(2)
-stopifnot(identical(axTicks(1), axTicks(3)),
-          identical(axTicks(2), axTicks(4)))
