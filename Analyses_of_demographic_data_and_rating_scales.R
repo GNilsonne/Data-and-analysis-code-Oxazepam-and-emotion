@@ -106,6 +106,43 @@ sd(demData$Externally.oriented.thinking[demData$Wave == 2 & demData$Included_EP 
 mean(demData$Externally.oriented.thinking[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
 sd(demData$Externally.oriented.thinking[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
 
+# Descriptive analyses, STAI-T
+mean(demData$STAI.T[demData$Wave == 1 & demData$Included_EP == 1 & demData$Treatment == "Placebo"], na.rm = T)
+sd(demData$STAI.T[demData$Wave == 1 & demData$Included_EP == 1 & demData$Treatment == "Placebo"], na.rm = T)
+mean(demData$STAI.T[demData$Wave == 1 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
+sd(demData$STAI.T[demData$Wave == 1 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
+mean(demData$STAI.T[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Placebo"], na.rm = T)
+sd(demData$STAI.T[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Placebo"], na.rm = T)
+mean(demData$STAI.T[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
+sd(demData$STAI.T[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
+
+# Descriptive analyses, PPI-R
+mean(demData$PPI_1_SCI_R[demData$Wave == 1 & demData$Included_EP == 1 & demData$Treatment == "Placebo"], na.rm = T)
+sd(demData$PPI_1_SCI_R[demData$Wave == 1 & demData$Included_EP == 1 & demData$Treatment == "Placebo"], na.rm = T)
+mean(demData$PPI_1_SCI_R[demData$Wave == 1 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
+sd(demData$PPI_1_SCI_R[demData$Wave == 1 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
+mean(demData$PPI_1_SCI_R[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Placebo"], na.rm = T)
+sd(demData$PPI_1_SCI_R[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Placebo"], na.rm = T)
+mean(demData$PPI_1_SCI_R[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
+sd(demData$PPI_1_SCI_R[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
+
+mean(demData$PPI_1_FD_R[demData$Wave == 1 & demData$Included_EP == 1 & demData$Treatment == "Placebo"], na.rm = T)
+sd(demData$PPI_1_FD_R[demData$Wave == 1 & demData$Included_EP == 1 & demData$Treatment == "Placebo"], na.rm = T)
+mean(demData$PPI_1_FD_R[demData$Wave == 1 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
+sd(demData$PPI_1_FD_R[demData$Wave == 1 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
+mean(demData$PPI_1_FD_R[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Placebo"], na.rm = T)
+sd(demData$PPI_1_FD_R[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Placebo"], na.rm = T)
+mean(demData$PPI_1_FD_R[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
+sd(demData$PPI_1_FD_R[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
+
+mean(demData$PPI_1_C_R[demData$Wave == 1 & demData$Included_EP == 1 & demData$Treatment == "Placebo"], na.rm = T)
+sd(demData$PPI_1_C_R[demData$Wave == 1 & demData$Included_EP == 1 & demData$Treatment == "Placebo"], na.rm = T)
+mean(demData$PPI_1_C_R[demData$Wave == 1 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
+sd(demData$PPI_1_C_R[demData$Wave == 1 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
+mean(demData$PPI_1_C_R[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Placebo"], na.rm = T)
+sd(demData$PPI_1_C_R[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Placebo"], na.rm = T)
+mean(demData$PPI_1_C_R[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
+sd(demData$PPI_1_C_R[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
 
 
 # Analyse effect of oxazepam on rated state anxiety
