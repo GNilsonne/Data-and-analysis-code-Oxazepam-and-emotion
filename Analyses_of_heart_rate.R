@@ -1,0 +1,331 @@
+# Script to analyse heart rate in the EP experiment of the Oxazepam project 2011
+# Gustav Nilsonne 2014-09-30
+
+# Require packages
+library(RCurl) # To read data from GitHub
+require(quantmod) # To find peaks for heartbeats
+require(reshape2)
+require(RColorBrewer)
+require(nlme)
+require(effects)
+
+# Define colors for later
+col1 = brewer.pal(8, "Dark2")[1]
+col2 = brewer.pal(8, "Dark2")[2]
+col3 = brewer.pal(8, "Dark2")[3]
+col4 = brewer.pal(8, "Dark2")[4]
+col5 = brewer.pal(8, "Dark2")[5]
+col6 = brewer.pal(8, "Dark2")[6]
+col7 = brewer.pal(8, "Dark2")[7]
+col8 = brewer.pal(8, "Dark2")[8]
+
+# Define function to read data
+fun_readEPdata <- function(X){
+  
+  # Read data file
+  EPDataURL <- getURL(paste("https://raw.githubusercontent.com/GNilsonne/Data-and-analysis-code-Oxazepam-and-emotion/master/EP/", X, "_EP_preprocessed.txt", sep = ""), ssl.verifypeer = FALSE)
+  data <- read.table(text = EPDataURL, skip = 31, header = FALSE)
+  if(length(data) == 13){
+    names(data) <- c("minutes", "SCR", "Raw_EMG_Zyg", "Raw_EMG_corr", "Rating", "EMG_corr", "ShockRef", "ShockPres", "SelfHigh", "SelfLow", "OtherHigh", "OtherLow", "NoShockPres")
+  } else {
+    names(data) <- c("minutes", "SCR", "Raw_EMG_Zyg", "Raw_EMG_corr", "Rating", "EKG", "EMG_corr", "ShockRef", "ShockPres", "SelfHigh", "SelfLow", "OtherHigh", "OtherLow", "NoShockPres")
+  } 
+  
+  # Find event onsets
+  data$SelfHighDiff <- c(0, diff(data$SelfHigh, lag = 1))
+  data$SelfHighOnsets <- data$SelfHighDiff == -5
+  data$SelfLowDiff <- c(0, diff(data$SelfLow, lag = 1))
+  data$SelfLowOnsets <- data$SelfLowDiff == -5
+  data$OtherHighDiff <- c(0, diff(data$OtherHigh, lag = 1))
+  data$OtherHighOnsets <- data$OtherHighDiff == -5
+  data$OtherLowDiff <- c(0, diff(data$OtherLow, lag = 1))
+  data$OtherLowOnsets <- data$OtherLowDiff == -5
+  
+  # Add time vector. Sampling was at 10 millisecond intervals.
+  data$millisecond <- 10*(1:length(data$minute))
+  
+  # Determine heart rate
+  if(length(data$EKG) > 0){
+    HeartBeats <- findPeaks(data$EKG[data$EKG > 0.22], thresh = 0.0001) # This threshold seems to work all right, should be sanity checked
+    HeartBeatTimes <- data$millisecond[data$EKG > 0.22][HeartBeats]
+    HeartBeatIntervals <- (c(HeartBeatTimes, 0) - c(0, HeartBeatTimes))/1000 # Convert to seconds
+    
+    HeartBeatTimes <- HeartBeatTimes[HeartBeatIntervals > 0.25] # Remove heartbeats that were unrealisticaly close to the last one, they are artefacts of the signal or of the peak finding algorithm
+    HeartBeatIntervals <- (c(HeartBeatTimes, 0) - c(0, HeartBeatTimes))/1000 # Convert to seconds
+    
+    HeartRate <- 60/HeartBeatIntervals
+    #plot(HeartRate, ylim = c(0, 100))
+    
+    plot(EKG ~ millisecond, data = data[2000:6000, ], type = "l", main = X, frame.plot = F, col = "gray")
+    points(HeartBeatTimes, rep(0.5, length(HeartBeatTimes)), col = "red", pch = "|")
+    
+    #plot(data$EKG[1:2000], type = "l")
+    #points(HeartBeats, rep(1, length(HeartBeats)), col = "red", pch = "|")
+    
+    data$HeartRate <- NA
+    index <- data$millisecond %in% HeartBeatTimes
+    HeartBeatLocations <- which(index == T)
+    for(i in 1:(length(HeartBeatLocations)-1)){
+      data$HeartRate[HeartBeatLocations[i]:HeartBeatLocations[i+1]] <- HeartRate[i]
+    }
+    
+    data$HeartRate[data$HeartRate < 40] <- NA # Heart rate below 40 is thought to arise from missing beats, set to NA 
+    data$HeartRate[data$HeartRate > 200] <- NA
+    #plot(data$HeartRate, type = "l")
+    
+    # Define data for each event  
+    SelfHighIndex <- which(data$SelfHighOnsets == TRUE)
+    data$SelfHighWindow <- FALSE
+    for(i in SelfHighIndex){
+      if(length(data$SelfHighWindow) > (SelfHighIndex[length(SelfHighIndex)] + 600)){
+        data$SelfHighWindow[(i - 200):(i + 600)] <- TRUE
+      } else {
+        this_length <- length(data$SelfHighWindow) - SelfHighIndex[length(SelfHighIndex)]
+        data$SelfHighWindow[(i - 200):(i + this_length)] <- TRUE
+      }
+    }
+    SelfLowIndex <- which(data$SelfLowOnsets == TRUE)
+    data$SelfLowWindow <- FALSE
+    for(i in SelfLowIndex){
+      if(length(data$SelfLowWindow) > (SelfLowIndex[length(SelfLowIndex)] + 600)){
+        data$SelfLowWindow[(i - 200):(i + 600)] <- TRUE
+      } else {
+        this_length <- length(data$SelfLowWindow) - SelfLowIndex[length(SelfLowIndex)]
+        data$SelfLowWindow[(i - 200):(i + this_length)] <- TRUE
+      }
+    }
+    OtherHighIndex <- which(data$OtherHighOnsets == TRUE)
+    data$OtherHighWindow <- FALSE
+    for(i in OtherHighIndex){
+      data$OtherHighWindow[(i - 200):(i + 600)] <- TRUE
+    }
+    OtherLowIndex <- which(data$OtherLowOnsets == TRUE)
+    data$OtherLowWindow <- FALSE
+    for(i in OtherLowIndex){
+      data$OtherLowWindow[(i - 200):(i + 600)] <- TRUE
+    }
+    
+    # Extract data, downsample
+    SelfHighHeartRate <- matrix(data$HeartRate[data$SelfHighWindow == TRUE], ncol = length(SelfHighIndex))
+    SelfHighHeartRate <- SelfHighHeartRate[seq(1, NROW(SelfHighHeartRate), by=10), ]
+    SelfLowHeartRate <- matrix(data$HeartRate[data$SelfLowWindow == TRUE], ncol = length(SelfLowIndex))
+    SelfLowHeartRate <- SelfLowHeartRate[seq(1, NROW(SelfLowHeartRate), by=10), ]
+    OtherHighHeartRate <- matrix(data$HeartRate[data$OtherHighWindow == TRUE], ncol = length(OtherHighIndex))
+    OtherHighHeartRate <- OtherHighHeartRate[seq(1, NROW(OtherHighHeartRate), by=10), ]
+    OtherLowHeartRate <- matrix(data$HeartRate[data$OtherLowWindow == TRUE], ncol = length(OtherLowIndex))
+    OtherLowHeartRate <- OtherLowHeartRate[seq(1, NROW(OtherLowHeartRate), by=10), ]
+    
+    # Make a list for each participant and return it as output
+    HeartRateData <- list(X, SelfHighHeartRate, SelfLowHeartRate, OtherHighHeartRate, OtherLowHeartRate)
+    return(HeartRateData)
+  }
+}
+
+# Read files
+# First demographic data etc
+demDataURL <- getURL("https://raw.githubusercontent.com/GNilsonne/Data-and-analysis-code-Oxazepam-and-emotion/master/demographics.csv", ssl.verifypeer = FALSE)
+demData <- read.csv(text = demDataURL)
+# Then the Acqknowledge logfiles containing EMG data
+IncludedSubjects <- demData$Subject[demData$Included_EP == T & demData$Wave == 2] # Heart rate was only measured in wave 2
+HeartRateDataList <- lapply(IncludedSubjects, FUN = fun_readEPdata)
+
+# Move all data to one big frame
+HeartRateData <- data.frame()
+
+for(i in 1:length(HeartRateDataList)){
+  if(!is.null(HeartRateDataList[i][[1]])){
+    SelfHighData <- melt(HeartRateDataList[i][[1]][[2]], na.rm = F)
+    names(SelfHighData) <- c("time_0.1s", "event_no", "hr_bpm")
+    SelfHighData$Condition <- "Self"
+    SelfHighData$Stimulus <- "High"
+    
+    OtherHighData <- melt(HeartRateDataList[i][[1]][[3]], na.rm = F)
+    names(OtherHighData) <- c("time_0.1s", "event_no", "hr_bpm")
+    OtherHighData$Condition <- "Other"
+    OtherHighData$Stimulus <- "High"
+    
+    SelfLowData <- melt(HeartRateDataList[i][[1]][[4]], na.rm = F)
+    names(SelfLowData) <- c("time_0.1s", "event_no", "hr_bpm")
+    SelfLowData$Condition <- "Self"
+    SelfLowData$Stimulus <- "Low"
+    
+    OtherLowData <- melt(HeartRateDataList[i][[1]][[5]], na.rm = F)
+    names(OtherLowData) <- c("time_0.1s", "event_no", "hr_bpm")
+    OtherLowData$Condition <- "Other"
+    OtherLowData$Stimulus <- "Low"
+    
+    HeartRateData_temp <- rbind(SelfHighData, OtherHighData, SelfLowData, OtherLowData)
+    HeartRateData_temp$subject <- IncludedSubjects[i]
+  }
+  HeartRateData <- rbind(HeartRateData, HeartRateData_temp)
+}
+
+# Check how many data points have been removed
+num_na <- sum(is.na(HeartRateData$hr_bpm))
+frac_na <- num_na/length(HeartRateData$hr_bpm)
+
+# Convert time scale and set 0 to event onset
+HeartRateData$time_s <- HeartRateData$time_0.1s/10
+HeartRateData$time_s <- HeartRateData$time_s -2
+  
+# Make spaghetti plots
+plot(hr_bpm ~ time_s, data = subset(HeartRateData, Condition == "Self" & Stimulus == "High"), frame.plot = F, type = 'n', main = "Self high", ylim = c(40, 200))
+for(i in unique(HeartRateData$subject)){
+  for( j in unique(HeartRateData$event_no[HeartRateData$subject == i])){
+    lines(hr_bpm ~ time_s, data = HeartRateData[HeartRateData$subject == i & HeartRateData$event_no == j & HeartRateData$Condition == "Self" & HeartRateData$Stimulus == "High", ], col = col4)
+  }
+}
+  
+plot(hr_bpm ~ time_s, data = subset(HeartRateData, Condition == "Self" & Stimulus == "Low"), frame.plot = F, type = 'n', main = "Self low", ylim = c(40, 200))
+for(i in unique(HeartRateData$subject)){
+  for( j in unique(HeartRateData$event_no[HeartRateData$subject == i])){
+    lines(hr_bpm ~ time_s, data = HeartRateData[HeartRateData$subject == i & HeartRateData$event_no == j & HeartRateData$Condition == "Self" & HeartRateData$Stimulus == "Low", ], col = col7)
+  }
+}
+
+plot(hr_bpm ~ time_s, data = subset(HeartRateData, Condition == "Other" & Stimulus == "High"), frame.plot = F, type = 'n', main = "Other high", ylim = c(40, 200))
+for(i in unique(HeartRateData$subject)){
+  for( j in unique(HeartRateData$event_no[HeartRateData$subject == i])){
+    lines(hr_bpm ~ time_s, data = HeartRateData[HeartRateData$subject == i & HeartRateData$event_no == j & HeartRateData$Condition == "Other" & HeartRateData$Stimulus == "High", ], col = col4)
+  }
+}
+
+plot(hr_bpm ~ time_s, data = subset(HeartRateData, Condition == "Other" & Stimulus == "Low"), frame.plot = F, type = 'n', main = "Other low", ylim = c(40, 200))
+for(i in unique(HeartRateData$subject)){
+  for( j in unique(HeartRateData$event_no[HeartRateData$subject == i])){
+    lines(hr_bpm ~ time_s, data = HeartRateData[HeartRateData$subject == i & HeartRateData$event_no == j & HeartRateData$Condition == "Other" & HeartRateData$Stimulus == "Low", ], col = col7)
+  }
+}
+
+MeanHRSelfHigh <- aggregate(hr_bpm ~ time_s, data = subset(HeartRateData, Condition == "Self" & Stimulus == "High"), mean)
+MeanHRSelfLow <- aggregate(hr_bpm ~ time_s, data = subset(HeartRateData, Condition == "Self" & Stimulus == "Low"), mean)
+MeanHROtherHigh <- aggregate(hr_bpm ~ time_s, data = subset(HeartRateData, Condition == "Other" & Stimulus == "High"), mean)
+MeanHROtherLow <- aggregate(hr_bpm ~ time_s, data = subset(HeartRateData, Condition == "Other" & Stimulus == "Low"), mean)
+
+plot(MeanHRSelfHigh, type = "l", col = col4, frame.plot = F, main = "Heart rate, self condition", ylim = c(67, 81))
+lines(MeanHRSelfLow, col = col7)
+legend("topleft", lty = 1, col = c(col4, col7), legend = c("High", "Low"), bty = "n")
+abline(v = c(0, 0.5), lty = 2)
+
+plot(MeanHROtherHigh, type = "l", col = col4, frame.plot = F, main = "Heart rate, other condition", ylim = c(67, 81))
+lines(MeanHROtherLow, col = col7)
+legend("topleft", lty = 1, col = c(col4, col7), legend = c("High", "Low"), bty = "n")
+abline(v = c(0, 0.5), lty = 2)
+
+# Since data have varying baselines between conditions, we index each response to its baseline from -2 to 0 seconds
+HeartRateData$hr_index <- NA
+for(i in unique(HeartRateData$subject)){
+  for(j in unique(HeartRateData$event_no[HeartRateData$subject == i])){
+    for(k in c("Self", "Other")){
+      for(l in c("High", "Low")){
+        HeartRateData$hr_index[HeartRateData$subject == i & HeartRateData$event_no == j & HeartRateData$Condition == k & HeartRateData$Stimulus == l] <- HeartRateData$hr_bpm[HeartRateData$subject == i & HeartRateData$event_no == j & HeartRateData$Condition == k & HeartRateData$Stimulus == l]/mean(HeartRateData$hr_bpm[HeartRateData$subject == i & HeartRateData$event_no == j & HeartRateData$Condition == k & HeartRateData$Stimulus == l][1:20])
+      }
+    }
+  }
+}
+
+MeanHRIndexSelfHigh <- aggregate(hr_index ~ time_s, data = subset(HeartRateData, Condition == "Self" & Stimulus == "High"), mean)
+MeanHRIndexSelfLow <- aggregate(hr_index ~ time_s, data = subset(HeartRateData, Condition == "Self" & Stimulus == "Low"), mean)
+MeanHRIndexOtherHigh <- aggregate(hr_index ~ time_s, data = subset(HeartRateData, Condition == "Other" & Stimulus == "High"), mean)
+MeanHRIndexOtherLow <- aggregate(hr_index ~ time_s, data = subset(HeartRateData, Condition == "Other" & Stimulus == "Low"), mean)
+
+pdf("Fig_HR1.pdf", width = 4, height = 4)
+plot(MeanHRIndexSelfHigh, type = "l", col = col4, frame.plot = F, main = "E. Heart rate, Self", ylim = c(0.98, 1.16), xlab = "Time, s", ylab = "Heart rate, normalised ratio")
+lines(MeanHRIndexSelfLow, col = col7)
+legend("topright", lty = 1, col = c(col4, col7), legend = c("High", "Low"), bty = "n")
+abline(v = c(0, 0.5), lty = 2)
+dev.off()
+
+pdf("Fig_HR2.pdf", width = 4, height = 4)
+plot(MeanHRIndexOtherHigh, type = "l", col = col4, frame.plot = F, main = "F. Heart rate, Other", ylim = c(0.98, 1.16), xlab = "Time, s", ylab = "Heart rate, normalised ratio")
+lines(MeanHRIndexOtherLow, col = col7)
+#legend("topleft", lty = 1, col = c(col4, col7), legend = c("High", "Low"), bty = "n")
+abline(v = c(0, 0.5), lty = 2)
+dev.off()
+
+# Average data over 1-4 second interval for each event for statistical modellingt
+HeartRateEventData <- data.frame()
+for(i in unique(HeartRateData$subject)){
+  for(j in unique(HeartRateData$event_no[HeartRateData$subject == i])){
+    for(k in c("Self", "Other")){
+      for(l in c("High", "Low")){
+        hr_mean <- mean(HeartRateData$hr_index[HeartRateData$subject == i & HeartRateData$event_no == j & HeartRateData$Condition == k & HeartRateData$Stimulus == l][30:60])
+        HeartRateEventData <- rbind(HeartRateEventData, data.frame(i, j, k, l, hr_mean))
+      }
+    }
+  }
+}
+names(HeartRateEventData) <- c("Subject", "event_no", "Condition", "Stimulus", "hr_mean")
+
+# Analyse data
+# Include IRI-EC terms in model since we wish to control for baseline empathic propensity 
+
+HeartRateEventData <- merge(HeartRateEventData, demData, by = "Subject")
+
+# Make a new column to specify an "Other High" contrast in modelling
+HeartRateEventData$OtherHigh <- as.numeric(HeartRateEventData$Condition)*as.numeric(HeartRateEventData$Stimulus)
+HeartRateEventData$OtherHigh[HeartRateEventData$OtherHigh == 1] <- 1
+HeartRateEventData$OtherHigh[HeartRateEventData$OtherHigh != 1] <- 0
+
+# z-transform IRI-EC
+HeartRateEventData$IRI_EC_z <- scale(HeartRateEventData$IRI_EC)
+
+# Make a regressor for predictor in other high condition only
+HeartRateEventData$IRI_EC_z_OtherHigh <- HeartRateEventData$IRI_EC_z * HeartRateEventData$OtherHigh
+
+# Mean center the new regressor
+HeartRateEventData$IRI_EC_z_OtherHigh[HeartRateEventData$IRI_EC_z_OtherHigh > 0 & !is.na(HeartRateEventData$IRI_EC_z_OtherHigh)] <- HeartRateEventData$IRI_EC_z_OtherHigh[HeartRateEventData$IRI_EC_z_OtherHigh > 0 & !is.na(HeartRateEventData$IRI_EC_z_OtherHigh)] - mean(HeartRateEventData$IRI_EC_z_OtherHigh[HeartRateEventData$IRI_EC_z_OtherHigh > 0 & !is.na(HeartRateEventData$IRI_EC_z_OtherHigh)], na.rm = TRUE)
+
+# Build model
+lme1 <- lme(hr_mean ~ Treatment*Stimulus*Condition + IRI_EC_z + IRI_EC_z_OtherHigh, data = HeartRateEventData, random = ~1|Subject, na.action = na.omit)
+
+plot(lme1)
+summary(lme1)
+intervals(lme1)
+
+eff1 <- effect("Treatment*Stimulus*Condition", lme1)
+
+pdf("Fig_HR3.pdf", width = 4, height = 4)
+plot(c(eff1$fit[2], eff1$fit[4]),
+     type = "b",
+     frame.plot = F,
+     ylab = "Heart rate, normalised ratio",
+     xlab = "Shock intensity",
+     xaxt = "n",
+     yaxt = "n",
+     xlim = c(1, 2.1),
+     ylim = c(0.95, 1.15),
+     col = col1,
+     main = "G. Heart rate, Self"
+)
+lines(c(1.1, 2.1), c(eff1$fit[1], eff1$fit[3]), type = "b", col = col2, pch = 16)
+lines(c(1, 1), c(eff1$upper[2], eff1$lower[2]), col = col1)
+lines(c(2, 2), c(eff1$upper[4], eff1$lower[4]), col = col1)
+lines(c(1.1, 1.1), c(eff1$upper[1], eff1$lower[1]), col = col2)
+lines(c(2.1, 2.1), c(eff1$upper[3], eff1$lower[3]), col = col2)
+axis(1, at = c(1.05, 2.05), labels = c("High", "Low"))
+axis(2, at = c(0.95, 1.05, 1.15))
+legend("topright", col = c(col1, col2), pch = c(1, 16), legend = c("Placebo", "Oxazepam"), bty = "n")
+dev.off()
+
+pdf("Fig_HR4.pdf", width = 4, height = 4)
+plot(c(eff1$fit[6], eff1$fit[8]),
+     type = "b",
+     frame.plot = F,
+     ylab = "Heart rate, normalised ratio",
+     xlab = "Shock intensity",
+     xaxt = "n",
+     yaxt = "n",
+     xlim = c(1, 2.1),
+     ylim = c(0.95, 1.15),
+     col = col1,
+     main = "H. Heart rate, Other"
+)
+lines(c(1.1, 2.1), c(eff1$fit[5], eff1$fit[7]), type = "b", col = col2, pch = 16)
+lines(c(1, 1), c(eff1$upper[6], eff1$lower[6]), col = col1)
+lines(c(2, 2), c(eff1$upper[8], eff1$lower[8]), col = col1)
+lines(c(1.1, 1.1), c(eff1$upper[5], eff1$lower[5]), col = col2)
+lines(c(2.1, 2.1), c(eff1$upper[7], eff1$lower[7]), col = col2)
+axis(1, at = c(1.05, 2.05), labels = c("High", "Low"))
+axis(2, at = c(0.95, 1.05, 1.15))
+dev.off()
