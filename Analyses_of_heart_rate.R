@@ -230,26 +230,29 @@ MeanHRIndexOtherHigh <- aggregate(hr_index ~ time_s, data = subset(HeartRateData
 MeanHRIndexOtherLow <- aggregate(hr_index ~ time_s, data = subset(HeartRateData, Condition == "Other" & Stimulus == "Low"), mean)
 
 pdf("Fig_HR1.pdf", width = 4, height = 4)
-plot(MeanHRIndexSelfHigh, type = "l", col = col4, frame.plot = F, main = "E. Heart rate, Self", ylim = c(0.98, 1.16), xlab = "Time, s", ylab = "Heart rate, normalised ratio")
-lines(MeanHRIndexSelfLow, col = col7)
-legend("topright", lty = 1, col = c(col4, col7), legend = c("High", "Low"), bty = "n")
-abline(v = c(0, 0.5), lty = 2)
+plot(MeanHRIndexSelfHigh, type = "n", col = col4, frame.plot = F, main = "I. Heart rate, Self", ylim = c(0.98, 1.16), xlab = "Time, s", ylab = "Heart rate, normalised ratio", xaxt = "n")
+abline(v = c(0, 0.5), lty = 3)
+rect(2.5, 0, 5, 1.16, col = "gray88", border = NA)
+axis(1)
+lines(MeanHRIndexSelfHigh, col = col4, lwd = 2)
+lines(MeanHRIndexSelfLow, col = col7, lty = 5, lwd = 2)
+legend("topright", lty = c(1, 5), lwd = 2, col = c(col4, col7), legend = c("High", "Low"), bg = "white")
 dev.off()
 
 pdf("Fig_HR2.pdf", width = 4, height = 4)
-plot(MeanHRIndexOtherHigh, type = "l", col = col4, frame.plot = F, main = "F. Heart rate, Other", ylim = c(0.98, 1.16), xlab = "Time, s", ylab = "Heart rate, normalised ratio")
+plot(MeanHRIndexOtherHigh, type = "l", col = col4, frame.plot = F, main = "J. Heart rate, Other", ylim = c(0.98, 1.16), xlab = "Time, s", ylab = "Heart rate, normalised ratio")
 lines(MeanHRIndexOtherLow, col = col7)
 #legend("topleft", lty = 1, col = c(col4, col7), legend = c("High", "Low"), bty = "n")
 abline(v = c(0, 0.5), lty = 2)
 dev.off()
 
-# Average data over 1-4 second interval for each event for statistical modellingt
+# Average data over 2-5 second interval for each event for statistical modellingt
 HeartRateEventData <- data.frame()
 for(i in unique(HeartRateData$subject)){
   for(j in unique(HeartRateData$event_no[HeartRateData$subject == i])){
     for(k in c("Self", "Other")){
       for(l in c("High", "Low")){
-        hr_mean <- mean(HeartRateData$hr_index[HeartRateData$subject == i & HeartRateData$event_no == j & HeartRateData$Condition == k & HeartRateData$Stimulus == l][30:60])
+        hr_mean <- mean(HeartRateData$hr_index[HeartRateData$subject == i & HeartRateData$event_no == j & HeartRateData$Condition == k & HeartRateData$Stimulus == l][40:70])
         HeartRateEventData <- rbind(HeartRateEventData, data.frame(i, j, k, l, hr_mean))
       }
     }
@@ -296,7 +299,7 @@ plot(c(eff1$fit[2], eff1$fit[4]),
      xlim = c(1, 2.1),
      ylim = c(0.95, 1.15),
      col = col1,
-     main = "G. Heart rate, Self"
+     main = "K. Heart rate, Self"
 )
 lines(c(1.1, 2.1), c(eff1$fit[1], eff1$fit[3]), type = "b", col = col2, pch = 16)
 lines(c(1, 1), c(eff1$upper[2], eff1$lower[2]), col = col1)
@@ -319,7 +322,7 @@ plot(c(eff1$fit[6], eff1$fit[8]),
      xlim = c(1, 2.1),
      ylim = c(0.95, 1.15),
      col = col1,
-     main = "H. Heart rate, Other"
+     main = "L. Heart rate, Other"
 )
 lines(c(1.1, 2.1), c(eff1$fit[5], eff1$fit[7]), type = "b", col = col2, pch = 16)
 lines(c(1, 1), c(eff1$upper[6], eff1$lower[6]), col = col1)
