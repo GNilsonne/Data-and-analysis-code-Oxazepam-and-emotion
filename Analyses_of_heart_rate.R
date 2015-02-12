@@ -8,6 +8,7 @@ require(reshape2)
 require(RColorBrewer)
 require(nlme)
 require(effects)
+library(latticeExtra) # To make dotcharts
 
 # Define colors for later
 col1 = brewer.pal(8, "Dark2")[1]
@@ -240,13 +241,14 @@ legend("topright", lty = c(1, 5), lwd = 2, col = c(col4, col7), legend = c("High
 dev.off()
 
 pdf("Fig_HR2.pdf", width = 4, height = 4)
-plot(MeanHRIndexOtherHigh, type = "l", col = col4, frame.plot = F, main = "J. Heart rate, Other", ylim = c(0.98, 1.16), xlab = "Time, s", ylab = "Heart rate, normalised ratio")
-lines(MeanHRIndexOtherLow, col = col7)
-#legend("topleft", lty = 1, col = c(col4, col7), legend = c("High", "Low"), bty = "n")
-abline(v = c(0, 0.5), lty = 2)
+plot(MeanHRIndexOtherHigh, type = "n", col = col4, frame.plot = F, main = "J. Heart rate, Other", ylim = c(0.98, 1.16), xlab = "Time, s", ylab = "Heart rate, normalised ratio")
+abline(v = c(0, 0.5), lty = 3)
+rect(2.5, 0, 5, 1.16, col = "gray88", border = NA)
+lines(MeanHRIndexOtherHigh, col = col4, lwd = 2)
+lines(MeanHRIndexOtherLow, col = col7, lty = 5, lwd = 2)
 dev.off()
 
-# Average data over 2-5 second interval for each event for statistical modellingt
+# Average data over 2-5 second interval for each event for statistical modelling
 HeartRateEventData <- data.frame()
 for(i in unique(HeartRateData$subject)){
   for(j in unique(HeartRateData$event_no[HeartRateData$subject == i])){
@@ -262,7 +264,6 @@ names(HeartRateEventData) <- c("Subject", "event_no", "Condition", "Stimulus", "
 
 # Analyse data
 # Include IRI-EC terms in model since we wish to control for baseline empathic propensity 
-
 HeartRateEventData <- merge(HeartRateEventData, demData, by = "Subject")
 
 # Make a new column to specify an "Other High" contrast in modelling
@@ -297,7 +298,7 @@ plot(c(eff1$fit[2], eff1$fit[4]),
      xaxt = "n",
      yaxt = "n",
      xlim = c(1, 2.1),
-     ylim = c(0.95, 1.15),
+     ylim = c(0.95, 1.12),
      col = col1,
      main = "K. Heart rate, Self"
 )
@@ -307,7 +308,7 @@ lines(c(2, 2), c(eff1$upper[4], eff1$lower[4]), col = col1)
 lines(c(1.1, 1.1), c(eff1$upper[1], eff1$lower[1]), col = col2)
 lines(c(2.1, 2.1), c(eff1$upper[3], eff1$lower[3]), col = col2)
 axis(1, at = c(1.05, 2.05), labels = c("High", "Low"))
-axis(2, at = c(0.95, 1.05, 1.15))
+axis(2, at = c(0.95, 1, 1.05, 1.1))
 legend("topright", col = c(col1, col2), pch = c(1, 16), legend = c("Placebo", "Oxazepam"), bty = "n")
 dev.off()
 
@@ -320,7 +321,7 @@ plot(c(eff1$fit[6], eff1$fit[8]),
      xaxt = "n",
      yaxt = "n",
      xlim = c(1, 2.1),
-     ylim = c(0.95, 1.15),
+     ylim = c(0.95, 1.12),
      col = col1,
      main = "L. Heart rate, Other"
 )
@@ -330,5 +331,175 @@ lines(c(2, 2), c(eff1$upper[8], eff1$lower[8]), col = col1)
 lines(c(1.1, 1.1), c(eff1$upper[5], eff1$lower[5]), col = col2)
 lines(c(2.1, 2.1), c(eff1$upper[7], eff1$lower[7]), col = col2)
 axis(1, at = c(1.05, 2.05), labels = c("High", "Low"))
-axis(2, at = c(0.95, 1.05, 1.15))
+axis(2, at = c(0.95, 1, 1.05, 1.1))
+dev.off()
+
+# Compare plots to less custom-generated output for verification
+plot(effect("Treatment*Stimulus*Condition", lme1))
+plot(effect("Stimulus*Condition", lme1))
+plot(effect("IRI_EC_z_OtherHigh", lme1))
+
+# Analyse other rating scales as predictors
+# Since rating scales may be collinear, we include them one by one
+# The procedure follows the same logic as above
+
+# IRI-PT
+HeartRateEventData$IRI_PT_z <- scale(HeartRateEventData$IRI_PT)
+HeartRateEventData$IRI_PT_z_OtherHigh <- HeartRateEventData$IRI_PT_z * HeartRateEventData$OtherHigh
+HeartRateEventData$IRI_PT_z_OtherHigh[HeartRateEventData$IRI_PT_z_OtherHigh > 0 & !is.na(HeartRateEventData$IRI_PT_z_OtherHigh)] <- HeartRateEventData$IRI_PT_z_OtherHigh[HeartRateEventData$IRI_PT_z_OtherHigh > 0 & !is.na(HeartRateEventData$IRI_PT_z_OtherHigh)] - mean(HeartRateEventData$IRI_PT_z_OtherHigh[HeartRateEventData$IRI_PT_z_OtherHigh > 0 & !is.na(HeartRateEventData$IRI_PT_z_OtherHigh)], na.rm = TRUE)
+lme2 <- lme(hr_mean ~ Treatment*Stimulus*Condition + IRI_PT_z + IRI_PT_z_OtherHigh, data = HeartRateEventData, random = ~1|Subject, na.action = na.omit)
+plot(lme2)
+summary(lme2)
+intervals(lme2)
+
+# IRI-PD
+HeartRateEventData$IRI_PD_z <- scale(HeartRateEventData$IRI_PD)
+HeartRateEventData$IRI_PD_z_OtherHigh <- HeartRateEventData$IRI_PD_z * HeartRateEventData$OtherHigh
+HeartRateEventData$IRI_PD_z_OtherHigh[HeartRateEventData$IRI_PD_z_OtherHigh > 0 & !is.na(HeartRateEventData$IRI_PD_z_OtherHigh)] <- HeartRateEventData$IRI_PD_z_OtherHigh[HeartRateEventData$IRI_PD_z_OtherHigh > 0 & !is.na(HeartRateEventData$IRI_PD_z_OtherHigh)] - mean(HeartRateEventData$IRI_PD_z_OtherHigh[HeartRateEventData$IRI_PD_z_OtherHigh > 0 & !is.na(HeartRateEventData$IRI_PD_z_OtherHigh)], na.rm = TRUE)
+lme3 <- lme(hr_mean ~ Treatment*Stimulus*Condition + IRI_PD_z + IRI_PD_z_OtherHigh, data = HeartRateEventData, random = ~1|Subject, na.action = na.omit)
+plot(lme3)
+summary(lme3)
+intervals(lme3)
+
+# IRI-F
+HeartRateEventData$IRI_F_z <- scale(HeartRateEventData$IRI_F)
+HeartRateEventData$IRI_F_z_OtherHigh <- HeartRateEventData$IRI_F_z * HeartRateEventData$OtherHigh
+HeartRateEventData$IRI_F_z_OtherHigh[HeartRateEventData$IRI_F_z_OtherHigh > 0 & !is.na(HeartRateEventData$IRI_F_z_OtherHigh)] <- HeartRateEventData$IRI_F_z_OtherHigh[HeartRateEventData$IRI_F_z_OtherHigh > 0 & !is.na(HeartRateEventData$IRI_F_z_OtherHigh)] - mean(HeartRateEventData$IRI_F_z_OtherHigh[HeartRateEventData$IRI_F_z_OtherHigh > 0 & !is.na(HeartRateEventData$IRI_F_z_OtherHigh)], na.rm = TRUE)
+lme4 <- lme(hr_mean ~ Treatment*Stimulus*Condition + IRI_F_z + IRI_F_z_OtherHigh, data = HeartRateEventData, random = ~1|Subject, na.action = na.omit)
+plot(lme4)
+summary(lme4)
+intervals(lme4)
+
+# STAI-T
+HeartRateEventData$STAI.T_z <- scale(HeartRateEventData$STAI.T)
+HeartRateEventData$STAI.T_z_OtherHigh <- HeartRateEventData$STAI.T_z * HeartRateEventData$OtherHigh
+HeartRateEventData$STAI.T_z_OtherHigh[HeartRateEventData$STAI.T_z_OtherHigh > 0 & !is.na(HeartRateEventData$STAI.T_z_OtherHigh)] <- HeartRateEventData$STAI.T_z_OtherHigh[HeartRateEventData$STAI.T_z_OtherHigh > 0 & !is.na(HeartRateEventData$STAI.T_z_OtherHigh)] - mean(HeartRateEventData$STAI.T_z_OtherHigh[HeartRateEventData$STAI.T_z_OtherHigh > 0 & !is.na(HeartRateEventData$STAI.T_z_OtherHigh)], na.rm = TRUE)
+lme5 <- lme(hr_mean ~ Treatment*Stimulus*Condition + STAI.T_z + STAI.T_z_OtherHigh, data = HeartRateEventData, random = ~1|Subject, na.action = na.omit)
+plot(lme5)
+summary(lme5)
+intervals(lme5)
+
+# TAS-20
+HeartRateEventData$TAS.20_z <- scale(HeartRateEventData$TAS.20)
+HeartRateEventData$TAS.20_z_OtherHigh <- HeartRateEventData$TAS.20_z * HeartRateEventData$OtherHigh
+HeartRateEventData$TAS.20_z_OtherHigh[HeartRateEventData$TAS.20_z_OtherHigh > 0 & !is.na(HeartRateEventData$TAS.20_z_OtherHigh)] <- HeartRateEventData$TAS.20_z_OtherHigh[HeartRateEventData$TAS.20_z_OtherHigh > 0 & !is.na(HeartRateEventData$TAS.20_z_OtherHigh)] - mean(HeartRateEventData$TAS.20_z_OtherHigh[HeartRateEventData$TAS.20_z_OtherHigh > 0 & !is.na(HeartRateEventData$TAS.20_z_OtherHigh)], na.rm = TRUE)
+lme6 <- lme(hr_mean ~ Treatment*Stimulus*Condition + TAS.20_z + TAS.20_z_OtherHigh, data = HeartRateEventData, random = ~1|Subject, na.action = na.omit)
+plot(lme6)
+summary(lme6)
+intervals(lme6)
+
+# PPI-R-SCI
+HeartRateEventData$PPI_SCI_z <- HeartRateEventData$PPI_1_SCI_R
+HeartRateEventData$PPI_SCI_z[HeartRateEventData$PPI_1_IR >= 45] <- NA # Exclude participants with too high scores on Inconsistent Responding measure
+HeartRateEventData$PPI_SCI_z <- scale(HeartRateEventData$PPI_SCI_z)
+HeartRateEventData$PPI_SCI_z_OtherHigh <- HeartRateEventData$PPI_SCI_z * HeartRateEventData$OtherHigh
+HeartRateEventData$PPI_SCI_z_OtherHigh[HeartRateEventData$PPI_SCI_z_OtherHigh > 0 & !is.na(HeartRateEventData$PPI_SCI_z_OtherHigh)] <- HeartRateEventData$PPI_SCI_z_OtherHigh[HeartRateEventData$PPI_SCI_z_OtherHigh > 0 & !is.na(HeartRateEventData$PPI_SCI_z_OtherHigh)] - mean(HeartRateEventData$PPI_SCI_z_OtherHigh[HeartRateEventData$PPI_SCI_z_OtherHigh > 0 & !is.na(HeartRateEventData$PPI_SCI_z_OtherHigh)], na.rm = TRUE)
+lme7 <- lme(hr_mean ~ Treatment*Stimulus*Condition + PPI_SCI_z + PPI_SCI_z_OtherHigh, data = HeartRateEventData, random = ~1|Subject, na.action = na.omit)
+plot(lme7)
+summary(lme7)
+intervals(lme7)
+
+# PPI-R-FD
+HeartRateEventData$PPI_FD_z <- HeartRateEventData$PPI_1_FD_R
+HeartRateEventData$PPI_FD_z[HeartRateEventData$PPI_1_IR >= 45] <- NA # Exclude participants with too high scores on Inconsistent Responding measure
+HeartRateEventData$PPI_FD_z <- scale(HeartRateEventData$PPI_FD_z)
+HeartRateEventData$PPI_FD_z_OtherHigh <- HeartRateEventData$PPI_FD_z * HeartRateEventData$OtherHigh
+HeartRateEventData$PPI_FD_z_OtherHigh[HeartRateEventData$PPI_FD_z_OtherHigh > 0 & !is.na(HeartRateEventData$PPI_FD_z_OtherHigh)] <- HeartRateEventData$PPI_FD_z_OtherHigh[HeartRateEventData$PPI_FD_z_OtherHigh > 0 & !is.na(HeartRateEventData$PPI_FD_z_OtherHigh)] - mean(HeartRateEventData$PPI_FD_z_OtherHigh[HeartRateEventData$PPI_FD_z_OtherHigh > 0 & !is.na(HeartRateEventData$PPI_FD_z_OtherHigh)], na.rm = TRUE)
+lme8 <- lme(hr_mean ~ Treatment*Stimulus*Condition + PPI_FD_z + PPI_FD_z_OtherHigh, data = HeartRateEventData, random = ~1|Subject, na.action = na.omit)
+plot(lme8)
+summary(lme8)
+intervals(lme8)
+
+# PPI-R-C
+HeartRateEventData$PPI_C_z <- HeartRateEventData$PPI_1_C_R
+HeartRateEventData$PPI_C_z[HeartRateEventData$PPI_1_IR >= 45] <- NA # Exclude participants with too high scores on Inconsistent Responding measure
+HeartRateEventData$PPI_C_z <- scale(HeartRateEventData$PPI_C_z)
+HeartRateEventData$PPI_C_z_OtherHigh <- HeartRateEventData$PPI_C_z * HeartRateEventData$OtherHigh
+HeartRateEventData$PPI_C_z_OtherHigh[HeartRateEventData$PPI_C_z_OtherHigh > 0 & !is.na(HeartRateEventData$PPI_C_z_OtherHigh)] <- HeartRateEventData$PPI_C_z_OtherHigh[HeartRateEventData$PPI_C_z_OtherHigh > 0 & !is.na(HeartRateEventData$PPI_C_z_OtherHigh)] - mean(HeartRateEventData$PPI_C_z_OtherHigh[HeartRateEventData$PPI_C_z_OtherHigh > 0 & !is.na(HeartRateEventData$PPI_C_z_OtherHigh)], na.rm = TRUE)
+lme9 <- lme(hr_mean ~ Treatment*Stimulus*Condition + PPI_C_z + PPI_C_z_OtherHigh, data = HeartRateEventData, random = ~1|Subject, na.action = na.omit)
+plot(lme9)
+summary(lme9)
+intervals(lme9)
+
+# Make plots to compare effects for different scales
+# Put data in new frame
+data_main <- data.frame(scale = "PPI-R-C", beta = intervals(lme9)$fixed[5, 2], lower = intervals(lme9)$fixed[5, 1], upper = intervals(lme9)$fixed[5, 3], group = "PPI")
+data_main <- rbind(data_main, data.frame(scale = "PPI-R-FD", beta = intervals(lme8)$fixed[5, 2], lower = intervals(lme8)$fixed[5, 1], upper = intervals(lme8)$fixed[5, 3], group = "PPI"))
+data_main <- rbind(data_main, data.frame(scale = "PPI-R-SCI", beta = intervals(lme7)$fixed[5, 2], lower = intervals(lme7)$fixed[5, 1], upper = intervals(lme7)$fixed[5, 3], group = "PPI"))
+data_main <- rbind(data_main, data.frame(scale = "TAS-20", beta = intervals(lme6)$fixed[5, 2], lower = intervals(lme6)$fixed[5, 1], upper = intervals(lme6)$fixed[5, 3], group = "TAS"))
+data_main <- rbind(data_main, data.frame(scale = "STAI-T", beta = intervals(lme5)$fixed[5, 2], lower = intervals(lme5)$fixed[5, 1], upper = intervals(lme5)$fixed[5, 3], group = "STAI"))
+data_main <- rbind(data_main, data.frame(scale = "IRI-F", beta = intervals(lme4)$fixed[5, 2], lower = intervals(lme4)$fixed[5, 1], upper = intervals(lme4)$fixed[5, 3], group = "IRI"))
+data_main <- rbind(data_main, data.frame(scale = "IRI-PD", beta = intervals(lme3)$fixed[5, 2], lower = intervals(lme3)$fixed[5, 1], upper = intervals(lme3)$fixed[5, 3], group = "IRI"))
+data_main <- rbind(data_main, data.frame(scale = "IRI-PT", beta = intervals(lme2)$fixed[5, 2], lower = intervals(lme2)$fixed[5, 1], upper = intervals(lme2)$fixed[5, 3], group = "IRI"))
+data_main <- rbind(data_main, data.frame(scale = "IRI-EC", beta = intervals(lme1)$fixed[5, 2], lower = intervals(lme1)$fixed[5, 1], upper = intervals(lme1)$fixed[5, 3], group = "IRI"))
+
+# Make plot
+pdf("Fig_HR5.pdf", width = 4, height = 4)
+axis.L <- function(side, ..., line.col){
+  if (side %in% c("bottom", "left")) {
+    col <- trellis.par.get("axis.text")$col
+    axis.default(side, ..., line.col = col)
+    if (side == "bottom")
+      grid::grid.lines(y = 0)
+  }
+}
+
+sty <- list()
+sty$axis.line$col <- NA
+sty$strip.border$col <- NA
+sty$strip.background$col <- NA
+segplot(scale ~ lower + upper, data = data_main, 
+        centers = beta, 
+        lwd = 2,
+        draw.bands = FALSE,
+        col = c(col8, col8, col8, col3, col6, col5, col5, col5, col5),
+        par.settings = sty,
+        axis=axis.L,
+        xlab = "Beta, 95% CI",
+        main = "C. Heart rate",
+        panel = function (x,y,z,...){
+          panel.segplot(x,y,z,...)
+          panel.abline(v=0,lty=2)
+        })
+dev.off()
+
+# Put data in new frame
+data_emp <- data.frame(scale = "PPI-R-C", beta = intervals(lme9)$fixed[6, 2], lower = intervals(lme9)$fixed[6, 1], upper = intervals(lme9)$fixed[6, 3], group = "PPI")
+data_emp <- rbind(data_emp, data.frame(scale = "PPI-R-FD", beta = intervals(lme8)$fixed[6, 2], lower = intervals(lme8)$fixed[6, 1], upper = intervals(lme8)$fixed[6, 3], group = "PPI"))
+data_emp <- rbind(data_emp, data.frame(scale = "PPI-R-SCI", beta = intervals(lme7)$fixed[6, 2], lower = intervals(lme7)$fixed[6, 1], upper = intervals(lme7)$fixed[6, 3], group = "PPI"))
+data_emp <- rbind(data_emp, data.frame(scale = "TAS-20", beta = intervals(lme6)$fixed[6, 2], lower = intervals(lme6)$fixed[6, 1], upper = intervals(lme6)$fixed[6, 3], group = "TAS"))
+data_emp <- rbind(data_emp, data.frame(scale = "STAI-T", beta = intervals(lme5)$fixed[6, 2], lower = intervals(lme5)$fixed[6, 1], upper = intervals(lme5)$fixed[6, 3], group = "STAI"))
+data_emp <- rbind(data_emp, data.frame(scale = "IRI-F", beta = intervals(lme4)$fixed[6, 2], lower = intervals(lme4)$fixed[6, 1], upper = intervals(lme4)$fixed[6, 3], group = "IRI"))
+data_emp <- rbind(data_emp, data.frame(scale = "IRI-PD", beta = intervals(lme3)$fixed[6, 2], lower = intervals(lme3)$fixed[6, 1], upper = intervals(lme3)$fixed[6, 3], group = "IRI"))
+data_emp <- rbind(data_emp, data.frame(scale = "IRI-PT", beta = intervals(lme2)$fixed[6, 2], lower = intervals(lme2)$fixed[6, 1], upper = intervals(lme2)$fixed[6, 3], group = "IRI"))
+data_emp <- rbind(data_emp, data.frame(scale = "IRI-EC", beta = intervals(lme1)$fixed[6, 2], lower = intervals(lme1)$fixed[6, 1], upper = intervals(lme1)$fixed[6, 3], group = "IRI"))
+
+# Make plot
+pdf("Fig_HR6.pdf", width = 4, height = 4)
+axis.L <- function(side, ..., line.col){
+  if (side %in% c("bottom", "left")) {
+    col <- trellis.par.get("axis.text")$col
+    axis.default(side, ..., line.col = col)
+    if (side == "bottom")
+      grid::grid.lines(y = 0)
+  }
+}
+
+sty <- list()
+sty$axis.line$col <- NA
+sty$strip.border$col <- NA
+sty$strip.background$col <- NA
+segplot(scale ~ lower + upper, data = data_emp, 
+        centers = beta, 
+        lwd = 2,
+        draw.bands = FALSE,
+        col = c(col8, col8, col8, col3, col6, col5, col5, col5, col5),
+        par.settings = sty,
+        axis=axis.L,
+        xlab = "Beta, 95% CI",
+        main = "C. Heart rate",
+        panel = function (x,y,z,...){
+          panel.segplot(x,y,z,...)
+          panel.abline(v=0,lty=2)
+        })
 dev.off()
