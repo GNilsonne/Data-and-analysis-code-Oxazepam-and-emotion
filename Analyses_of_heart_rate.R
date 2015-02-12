@@ -267,6 +267,8 @@ names(HeartRateEventData) <- c("Subject", "event_no", "Condition", "Stimulus", "
 HeartRateEventData <- merge(HeartRateEventData, demData, by = "Subject")
 
 # Make a new column to specify an "Other High" contrast in modelling
+HeartRateEventData$Condition <- ordered(HeartRateEventData$Condition, levels = c("Other", "Self"))
+
 HeartRateEventData$OtherHigh <- as.numeric(HeartRateEventData$Condition)*as.numeric(HeartRateEventData$Stimulus)
 HeartRateEventData$OtherHigh[HeartRateEventData$OtherHigh == 1] <- 1
 HeartRateEventData$OtherHigh[HeartRateEventData$OtherHigh != 1] <- 0
