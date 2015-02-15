@@ -292,7 +292,7 @@ intervals(lme1)
 eff1 <- effect("Treatment*Stimulus*Condition", lme1)
 
 pdf("Fig_HR3.pdf", width = 4, height = 4)
-plot(c(eff1$fit[2], eff1$fit[4]),
+plot(c(eff1$fit[6], eff1$fit[8]),
      type = "b",
      frame.plot = F,
      ylab = "Heart rate, normalised ratio",
@@ -304,18 +304,18 @@ plot(c(eff1$fit[2], eff1$fit[4]),
      col = col1,
      main = "K. Heart rate, Self"
 )
-lines(c(1.1, 2.1), c(eff1$fit[1], eff1$fit[3]), type = "b", col = col2, pch = 16)
-lines(c(1, 1), c(eff1$upper[2], eff1$lower[2]), col = col1)
-lines(c(2, 2), c(eff1$upper[4], eff1$lower[4]), col = col1)
-lines(c(1.1, 1.1), c(eff1$upper[1], eff1$lower[1]), col = col2)
-lines(c(2.1, 2.1), c(eff1$upper[3], eff1$lower[3]), col = col2)
+lines(c(1.1, 2.1), c(eff1$fit[5], eff1$fit[7]), type = "b", col = col2, pch = 16)
+lines(c(1, 1), c(eff1$upper[6], eff1$lower[6]), col = col1)
+lines(c(2, 2), c(eff1$upper[8], eff1$lower[8]), col = col1)
+lines(c(1.1, 1.1), c(eff1$upper[5], eff1$lower[5]), col = col2)
+lines(c(2.1, 2.1), c(eff1$upper[7], eff1$lower[7]), col = col2)
 axis(1, at = c(1.05, 2.05), labels = c("High", "Low"))
 axis(2, at = c(0.95, 1, 1.05, 1.1))
 legend("topright", col = c(col1, col2), pch = c(1, 16), legend = c("Placebo", "Oxazepam"), bty = "n")
 dev.off()
 
 pdf("Fig_HR4.pdf", width = 4, height = 4)
-plot(c(eff1$fit[6], eff1$fit[8]),
+plot(c(eff1$fit[2], eff1$fit[4]),
      type = "b",
      frame.plot = F,
      ylab = "Heart rate, normalised ratio",
@@ -327,11 +327,11 @@ plot(c(eff1$fit[6], eff1$fit[8]),
      col = col1,
      main = "L. Heart rate, Other"
 )
-lines(c(1.1, 2.1), c(eff1$fit[5], eff1$fit[7]), type = "b", col = col2, pch = 16)
-lines(c(1, 1), c(eff1$upper[6], eff1$lower[6]), col = col1)
-lines(c(2, 2), c(eff1$upper[8], eff1$lower[8]), col = col1)
-lines(c(1.1, 1.1), c(eff1$upper[5], eff1$lower[5]), col = col2)
-lines(c(2.1, 2.1), c(eff1$upper[7], eff1$lower[7]), col = col2)
+lines(c(1.1, 2.1), c(eff1$fit[1], eff1$fit[3]), type = "b", col = col2, pch = 16)
+lines(c(1, 1), c(eff1$upper[2], eff1$lower[2]), col = col1)
+lines(c(2, 2), c(eff1$upper[4], eff1$lower[4]), col = col1)
+lines(c(1.1, 1.1), c(eff1$upper[1], eff1$lower[1]), col = col2)
+lines(c(2.1, 2.1), c(eff1$upper[3], eff1$lower[3]), col = col2)
 axis(1, at = c(1.05, 2.05), labels = c("High", "Low"))
 axis(2, at = c(0.95, 1, 1.05, 1.1))
 dev.off()
