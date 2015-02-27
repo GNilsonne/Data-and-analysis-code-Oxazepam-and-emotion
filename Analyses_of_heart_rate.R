@@ -231,7 +231,7 @@ MeanHRIndexOtherHigh <- aggregate(hr_index ~ time_s, data = subset(HeartRateData
 MeanHRIndexOtherLow <- aggregate(hr_index ~ time_s, data = subset(HeartRateData, Condition == "Other" & Stimulus == "Low"), mean)
 
 pdf("Fig_HR1.pdf", width = 4, height = 4)
-plot(MeanHRIndexSelfHigh, type = "n", col = col4, frame.plot = F, main = "I. Heart rate, Self", ylim = c(0.98, 1.16), xlab = "Time, s", ylab = "Heart rate, normalised ratio", xaxt = "n")
+plot(MeanHRIndexSelfHigh, type = "n", col = col4, frame.plot = F, main = "A. Heart rate, Self", ylim = c(0.98, 1.16), xlab = "Time, s", ylab = "Heart rate, normalised ratio", xaxt = "n")
 abline(v = c(0, 0.5), lty = 3)
 rect(2.5, 0, 5, 1.16, col = "gray88", border = NA)
 axis(1)
@@ -241,20 +241,21 @@ legend("topright", lty = c(1, 5), lwd = 2, col = c(col4, col7), legend = c("High
 dev.off()
 
 pdf("Fig_HR2.pdf", width = 4, height = 4)
-plot(MeanHRIndexOtherHigh, type = "n", col = col4, frame.plot = F, main = "J. Heart rate, Other", ylim = c(0.98, 1.16), xlab = "Time, s", ylab = "Heart rate, normalised ratio")
+plot(MeanHRIndexOtherHigh, type = "n", col = col4, frame.plot = F, main = "B. Heart rate, Other", ylim = c(0.98, 1.16), xlab = "Time, s", ylab = "Heart rate, normalised ratio", xaxt = "n")
 abline(v = c(0, 0.5), lty = 3)
 rect(2.5, 0, 5, 1.16, col = "gray88", border = NA)
+axis(1)
 lines(MeanHRIndexOtherHigh, col = col4, lwd = 2)
 lines(MeanHRIndexOtherLow, col = col7, lty = 5, lwd = 2)
 dev.off()
 
-# Average data over 2-5 second interval for each event for statistical modelling
+# Average data over 2.5-5 second interval for each event for statistical modelling
 HeartRateEventData <- data.frame()
 for(i in unique(HeartRateData$subject)){
   for(j in unique(HeartRateData$event_no[HeartRateData$subject == i])){
     for(k in c("Self", "Other")){
       for(l in c("High", "Low")){
-        hr_mean <- mean(HeartRateData$hr_index[HeartRateData$subject == i & HeartRateData$event_no == j & HeartRateData$Condition == k & HeartRateData$Stimulus == l][40:70])
+        hr_mean <- mean(HeartRateData$hr_index[HeartRateData$subject == i & HeartRateData$event_no == j & HeartRateData$Condition == k & HeartRateData$Stimulus == l][45:70])
         HeartRateEventData <- rbind(HeartRateEventData, data.frame(i, j, k, l, hr_mean))
       }
     }
@@ -300,9 +301,9 @@ plot(c(eff1$fit[6], eff1$fit[8]),
      xaxt = "n",
      yaxt = "n",
      xlim = c(1, 2.1),
-     ylim = c(0.95, 1.12),
+     ylim = c(0.97, 1.12),
      col = col1,
-     main = "K. Heart rate, Self"
+     main = "C. Heart rate, Self"
 )
 lines(c(1.1, 2.1), c(eff1$fit[5], eff1$fit[7]), type = "b", col = col2, pch = 16)
 lines(c(1, 1), c(eff1$upper[6], eff1$lower[6]), col = col1)
@@ -310,7 +311,7 @@ lines(c(2, 2), c(eff1$upper[8], eff1$lower[8]), col = col1)
 lines(c(1.1, 1.1), c(eff1$upper[5], eff1$lower[5]), col = col2)
 lines(c(2.1, 2.1), c(eff1$upper[7], eff1$lower[7]), col = col2)
 axis(1, at = c(1.05, 2.05), labels = c("High", "Low"))
-axis(2, at = c(0.95, 1, 1.05, 1.1))
+axis(2, at = c(1, 1.05, 1.1))
 legend("topright", col = c(col1, col2), pch = c(1, 16), legend = c("Placebo", "Oxazepam"), bty = "n")
 dev.off()
 
@@ -323,9 +324,9 @@ plot(c(eff1$fit[2], eff1$fit[4]),
      xaxt = "n",
      yaxt = "n",
      xlim = c(1, 2.1),
-     ylim = c(0.95, 1.12),
+     ylim = c(0.97, 1.12),
      col = col1,
-     main = "L. Heart rate, Other"
+     main = "D. Heart rate, Other"
 )
 lines(c(1.1, 2.1), c(eff1$fit[1], eff1$fit[3]), type = "b", col = col2, pch = 16)
 lines(c(1, 1), c(eff1$upper[2], eff1$lower[2]), col = col1)
@@ -333,7 +334,7 @@ lines(c(2, 2), c(eff1$upper[4], eff1$lower[4]), col = col1)
 lines(c(1.1, 1.1), c(eff1$upper[1], eff1$lower[1]), col = col2)
 lines(c(2.1, 2.1), c(eff1$upper[3], eff1$lower[3]), col = col2)
 axis(1, at = c(1.05, 2.05), labels = c("High", "Low"))
-axis(2, at = c(0.95, 1, 1.05, 1.1))
+axis(2, at = c(1, 1.05, 1.1))
 dev.off()
 
 # Compare plots to less custom-generated output for verification
