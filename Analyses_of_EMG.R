@@ -1,9 +1,8 @@
-# Script to analyse heart rate in the EP experiment of the Oxazepam project 2011
-# Gustav Nilsonne 2014-09-30
+# Script to analyse EMG in the EP experiment of the Oxazepam project 2011
+# Gustav Nilsonne 2015-02-19
 
 # Require packages
 library(RCurl) # To read data from GitHub
-require(quantmod) # To find peaks for heartbeats
 require(reshape2)
 require(RColorBrewer)
 require(nlme)
@@ -21,14 +20,19 @@ col7 = brewer.pal(8, "Dark2")[7]
 col8 = brewer.pal(8, "Dark2")[8]
 
 # Define function to read data
-fun_readEPdata <- function(X){
+fun_readEMGdata <- function(X){
   
   # Read data file
-  EPDataURL <- getURL(paste("https://raw.githubusercontent.com/GNilsonne/Data-and-analysis-code-Oxazepam-and-emotion/master/EP/", X, "_EP_preprocessed.txt", sep = ""), ssl.verifypeer = FALSE)
-  data <- read.table(text = EPDataURL, skip = 31, header = FALSE)
-  if(length(data) == 13){
+  if(X == 9){
+    X <- "09"
+  }
+  EMGDataURL <- getURL(paste("https://raw.githubusercontent.com/GNilsonne/Data-and-analysis-code-Oxazepam-and-emotion/master/EP/", X, "_EP_preprocessed.txt", sep = ""), ssl.verifypeer = FALSE)
+  data <- read.table(text = EMGDataURL, skip = 31, header = FALSE)
+  if(length(data) == 12){
+    names(data) <- c("SCR", "Raw_EMG_Zyg", "Raw_EMG_corr", "Rating", "EMG_corr", "ShockRef", "ShockPres", "SelfHigh", "SelfLow", "OtherHigh", "OtherLow", "NoShockPres")
+  } else if(length(data) == 13){
     names(data) <- c("minutes", "SCR", "Raw_EMG_Zyg", "Raw_EMG_corr", "Rating", "EMG_corr", "ShockRef", "ShockPres", "SelfHigh", "SelfLow", "OtherHigh", "OtherLow", "NoShockPres")
-  } else {
+  } else if(length(data) == 14){
     names(data) <- c("minutes", "SCR", "Raw_EMG_Zyg", "Raw_EMG_corr", "Rating", "EKG", "EMG_corr", "ShockRef", "ShockPres", "SelfHigh", "SelfLow", "OtherHigh", "OtherLow", "NoShockPres")
   } 
   
@@ -43,7 +47,7 @@ fun_readEPdata <- function(X){
   data$OtherLowOnsets <- data$OtherLowDiff == -5
   
   # Add time vector. Sampling was at 10 millisecond intervals.
-  data$millisecond <- 10*(1:length(data$minute))
+  data$millisecond <- 10*(1:length(data$SCR))
   
   # Get EMG data
   
@@ -51,22 +55,17 @@ fun_readEPdata <- function(X){
   SelfHighIndex <- which(data$SelfHighOnsets == TRUE)
   data$SelfHighWindow <- FALSE
   for(i in SelfHighIndex){
-    if(length(data$SelfHighWindow) > (SelfHighIndex[length(SelfHighIndex)] + 600)){
+    if(length(data[, 1]) > (i + 600)){
       data$SelfHighWindow[(i - 200):(i + 600)] <- TRUE
     } else {
-      this_length <- length(data$SelfHighWindow) - SelfHighIndex[length(SelfHighIndex)]
+      this_length <- length(data[, 1]) - i
       data$SelfHighWindow[(i - 200):(i + this_length)] <- TRUE
     }
   }
   SelfLowIndex <- which(data$SelfLowOnsets == TRUE)
   data$SelfLowWindow <- FALSE
   for(i in SelfLowIndex){
-    if(length(data$SelfLowWindow) > (SelfLowIndex[length(SelfLowIndex)] + 600)){
       data$SelfLowWindow[(i - 200):(i + 600)] <- TRUE
-    } else {
-      this_length <- length(data$SelfLowWindow) - SelfLowIndex[length(SelfLowIndex)]
-      data$SelfLowWindow[(i - 200):(i + this_length)] <- TRUE
-    }
   }
   OtherHighIndex <- which(data$OtherHighOnsets == TRUE)
   data$OtherHighWindow <- FALSE
@@ -79,34 +78,40 @@ fun_readEPdata <- function(X){
     data$OtherLowWindow[(i - 200):(i + 600)] <- TRUE
   }
   
-  # Smooth data before downsampling
-  #data$EMG_smoothed <- predict(loess(EMG_corr ~ millisecond, data = data))
-  
-  #plot(EMG_corr ~ millisecond, data = data[1:10000, ], type = "l", main = X, frame.plot = F, col = "gray")
-  #lines(loess(EMG_corr ~ millisecond, data = data, span = 200))
-  #test <- lowess(x = data$millisecond, y = data$EMG_corr, f = 1/5000000)
-  #lines(test$y ~ test$x)
-  
-  require(limma)
-  
   # Extract data, downsample
-  SelfHighEMG <- matrix(data$EMG_corr[data$SelfHighWindow == TRUE], ncol = length(SelfHighIndex))
+  if(X != 83){ # Participant 83 had a few data points missing at the end
+    SelfHighEMG <- matrix(data$EMG_corr[data$SelfHighWindow == TRUE], ncol = length(SelfHighIndex))
+      } else if(X == 83){
+    data_temp <- data$EMG_corr[data$SelfHighWindow == TRUE]
+    data_temp[7028:7209] <- NA
+    SelfHighEMG <- matrix(data_temp, ncol = 9)
+  }
+  SelfHighEMGlowess <- apply(SelfHighEMG, 2, lowess, f = 0.01)
+  SelfHighEMGlowess <- matrix(unlist(SelfHighEMGlowess), byrow = F, ncol = length(SelfHighEMGlowess))[802:1602, ]
   
-  plot(SelfHighEMG[, 1], type = "l", col = "gray", frame.plot = F)
-  test <- lowess(SelfHighEMG[, 1], f = 0.01)
-  #lines(test)
-  lines(y = test$y[seq(1, NROW(test$y), by=10)], x = test$x[seq(1, NROW(test$x), by=10)], col = "red")
+  plot(SelfHighEMG[, 1], type = "l", col = "gray", frame.plot = F, main = X)
+  lines(SelfHighEMGlowess[, 1])
+  lines(y = SelfHighEMGlowess[, 1][seq(1, NROW(SelfHighEMGlowess[, 1]), by=10)], x = c(1:801)[seq(1, NROW(SelfHighEMGlowess[, 1]), by=10)], col = "red", type = "o")
   
-  SelfHighEMG <- SelfHighEMG[seq(1, NROW(SelfHighEMG), by=10), ]
-  SelfLowEMG <- matrix(data$EMG[data$SelfLowWindow == TRUE], ncol = length(SelfLowIndex))
-  SelfLowEMG <- SelfLowEMG[seq(1, NROW(SelfLowEMG), by=10), ]
-  OtherHighEMG <- matrix(data$EMG[data$OtherHighWindow == TRUE], ncol = length(OtherHighIndex))
-  OtherHighEMG <- OtherHighEMG[seq(1, NROW(OtherHighEMG), by=10), ]
-  OtherLowEMG <- matrix(data$EMG[data$OtherLowWindow == TRUE], ncol = length(OtherLowIndex))
-  OtherLowEMG <- OtherLowEMG[seq(1, NROW(OtherLowEMG), by=10), ]
+  SelfHighEMGdownsampled <- SelfHighEMG[seq(1, NROW(SelfHighEMGlowess), by=10), ]
   
+  SelfLowEMG <- matrix(data$EMG_corr[data$SelfLowWindow == TRUE], ncol = length(SelfLowIndex))
+  SelfLowEMGlowess <- apply(SelfLowEMG, 2, lowess, f = 0.01)
+  SelfLowEMGlowess <- matrix(unlist(SelfLowEMGlowess), byrow = F, ncol = length(SelfLowEMGlowess))[802:1602, ]
+  SelfLowEMGdownsampled <- SelfLowEMG[seq(1, NROW(SelfLowEMGlowess), by=10), ]
+  
+  OtherHighEMG <- matrix(data$EMG_corr[data$OtherHighWindow == TRUE], ncol = length(OtherHighIndex))
+  OtherHighEMGlowess <- apply(OtherHighEMG, 2, lowess, f = 0.01)
+  OtherHighEMGlowess <- matrix(unlist(OtherHighEMGlowess), byrow = F, ncol = length(OtherHighEMGlowess))[802:1602, ]
+  OtherHighEMGdownsampled <- OtherHighEMG[seq(1, NROW(OtherHighEMGlowess), by=10), ]
+  
+  OtherLowEMG <- matrix(data$EMG_corr[data$OtherLowWindow == TRUE], ncol = length(OtherLowIndex))
+  OtherLowEMGlowess <- apply(OtherLowEMG, 2, lowess, f = 0.01)
+  OtherLowEMGlowess <- matrix(unlist(OtherLowEMGlowess), byrow = F, ncol = length(OtherLowEMGlowess))[802:1602, ]
+  OtherLowEMGdownsampled <- OtherLowEMG[seq(1, NROW(OtherLowEMGlowess), by=10), ]
+
   # Make a list for each participant and return it as output
-  EMGData <- list(X, SelfHighEMG, SelfLowEMG, OtherHighEMG, OtherLowEMG)
+  EMGData <- list(as.integer(X), SelfHighEMGdownsampled, SelfLowEMGdownsampled, OtherHighEMGdownsampled, OtherLowEMGdownsampled)
   return(EMGData)
 }
 
@@ -115,163 +120,238 @@ fun_readEPdata <- function(X){
 demDataURL <- getURL("https://raw.githubusercontent.com/GNilsonne/Data-and-analysis-code-Oxazepam-and-emotion/master/demographics.csv", ssl.verifypeer = FALSE)
 demData <- read.csv(text = demDataURL)
 # Then the Acqknowledge logfiles containing EMG data
-IncludedSubjects <- demData$Subject[demData$Included_EP == T & demData$Wave == 2] # Heart rate was only measured in wave 2
-HeartRateDataList <- lapply(IncludedSubjects, FUN = fun_readEPdata)
+IncludedSubjects <- demData$Subject[demData$Included_EP == T]
+EMGDataList <- lapply(IncludedSubjects, FUN = fun_readEMGdata)
 
 # Move all data to one big frame
-HeartRateData <- data.frame()
+EMGData <- data.frame()
 
-for(i in 1:length(HeartRateDataList)){
-  if(!is.null(HeartRateDataList[i][[1]])){
-    SelfHighData <- melt(HeartRateDataList[i][[1]][[2]], na.rm = F)
-    names(SelfHighData) <- c("time_0.1s", "event_no", "hr_bpm")
+for(i in 1:length(EMGDataList)){
+  if(!is.null(EMGDataList[i][[1]])){
+    SelfHighData <- melt(EMGDataList[i][[1]][[2]], na.rm = F)
+    names(SelfHighData) <- c("time_0.1s", "event_no", "EMG_corr")
     SelfHighData$Condition <- "Self"
     SelfHighData$Stimulus <- "High"
     
-    OtherHighData <- melt(HeartRateDataList[i][[1]][[3]], na.rm = F)
-    names(OtherHighData) <- c("time_0.1s", "event_no", "hr_bpm")
+    OtherHighData <- melt(EMGDataList[i][[1]][[3]], na.rm = F)
+    names(OtherHighData) <- c("time_0.1s", "event_no", "EMG_corr")
     OtherHighData$Condition <- "Other"
     OtherHighData$Stimulus <- "High"
     
-    SelfLowData <- melt(HeartRateDataList[i][[1]][[4]], na.rm = F)
-    names(SelfLowData) <- c("time_0.1s", "event_no", "hr_bpm")
+    SelfLowData <- melt(EMGDataList[i][[1]][[4]], na.rm = F)
+    names(SelfLowData) <- c("time_0.1s", "event_no", "EMG_corr")
     SelfLowData$Condition <- "Self"
     SelfLowData$Stimulus <- "Low"
     
-    OtherLowData <- melt(HeartRateDataList[i][[1]][[5]], na.rm = F)
-    names(OtherLowData) <- c("time_0.1s", "event_no", "hr_bpm")
+    OtherLowData <- melt(EMGDataList[i][[1]][[5]], na.rm = F)
+    names(OtherLowData) <- c("time_0.1s", "event_no", "EMG_corr")
     OtherLowData$Condition <- "Other"
     OtherLowData$Stimulus <- "Low"
     
-    HeartRateData_temp <- rbind(SelfHighData, OtherHighData, SelfLowData, OtherLowData)
-    HeartRateData_temp$subject <- IncludedSubjects[i]
+    EMGData_temp <- rbind(SelfHighData, OtherHighData, SelfLowData, OtherLowData)
+    EMGData_temp$subject <- IncludedSubjects[i]
   }
-  HeartRateData <- rbind(HeartRateData, HeartRateData_temp)
+  EMGData <- rbind(EMGData, EMGData_temp)
 }
 
 # Check how many data points have been removed
-num_na <- sum(is.na(HeartRateData$hr_bpm))
-frac_na <- num_na/length(HeartRateData$hr_bpm)
+num_na <- sum(is.na(EMGData$EMG_corr))
+frac_na <- num_na/length(EMGData$EMG_corr)
 
 # Convert time scale and set 0 to event onset
-HeartRateData$time_s <- HeartRateData$time_0.1s/10
-HeartRateData$time_s <- HeartRateData$time_s -2
+EMGData$time_s <- EMGData$time_0.1s/10
+EMGData$time_s <- EMGData$time_s -2
   
 # Make spaghetti plots
-plot(hr_bpm ~ time_s, data = subset(HeartRateData, Condition == "Self" & Stimulus == "High"), frame.plot = F, type = 'n', main = "Self high", ylim = c(40, 200))
-for(i in unique(HeartRateData$subject)){
-  for( j in unique(HeartRateData$event_no[HeartRateData$subject == i])){
-    lines(hr_bpm ~ time_s, data = HeartRateData[HeartRateData$subject == i & HeartRateData$event_no == j & HeartRateData$Condition == "Self" & HeartRateData$Stimulus == "High", ], col = col4)
+plot(EMG_corr ~ time_s, data = subset(EMGData, Condition == "Self" & Stimulus == "High"), frame.plot = F, type = 'n', main = "Self high", ylim = c(0, 0.04))
+for(i in unique(EMGData$subject)){
+  for( j in unique(EMGData$event_no[EMGData$subject == i])){
+    lines(EMG_corr ~ time_s, data = EMGData[EMGData$subject == i & EMGData$event_no == j & EMGData$Condition == "Self" & EMGData$Stimulus == "High", ], col = col4)
   }
 }
   
-plot(hr_bpm ~ time_s, data = subset(HeartRateData, Condition == "Self" & Stimulus == "Low"), frame.plot = F, type = 'n', main = "Self low", ylim = c(40, 200))
-for(i in unique(HeartRateData$subject)){
-  for( j in unique(HeartRateData$event_no[HeartRateData$subject == i])){
-    lines(hr_bpm ~ time_s, data = HeartRateData[HeartRateData$subject == i & HeartRateData$event_no == j & HeartRateData$Condition == "Self" & HeartRateData$Stimulus == "Low", ], col = col7)
+plot(EMG_corr ~ time_s, data = subset(EMGData, Condition == "Self" & Stimulus == "Low"), frame.plot = F, type = 'n', main = "Self low", ylim = c(0, 0.04))
+for(i in unique(EMGData$subject)){
+  for( j in unique(EMGData$event_no[EMGData$subject == i])){
+    lines(EMG_corr ~ time_s, data = EMGData[EMGData$subject == i & EMGData$event_no == j & EMGData$Condition == "Self" & EMGData$Stimulus == "Low", ], col = col7)
   }
 }
 
-plot(hr_bpm ~ time_s, data = subset(HeartRateData, Condition == "Other" & Stimulus == "High"), frame.plot = F, type = 'n', main = "Other high", ylim = c(40, 200))
-for(i in unique(HeartRateData$subject)){
-  for( j in unique(HeartRateData$event_no[HeartRateData$subject == i])){
-    lines(hr_bpm ~ time_s, data = HeartRateData[HeartRateData$subject == i & HeartRateData$event_no == j & HeartRateData$Condition == "Other" & HeartRateData$Stimulus == "High", ], col = col4)
+plot(EMG_corr ~ time_s, data = subset(EMGData, Condition == "Other" & Stimulus == "High"), frame.plot = F, type = 'n', main = "Other high", ylim = c(0, 0.04))
+for(i in unique(EMGData$subject)){
+  for( j in unique(EMGData$event_no[EMGData$subject == i])){
+    lines(EMG_corr ~ time_s, data = EMGData[EMGData$subject == i & EMGData$event_no == j & EMGData$Condition == "Other" & EMGData$Stimulus == "High", ], col = col4)
   }
 }
 
-plot(hr_bpm ~ time_s, data = subset(HeartRateData, Condition == "Other" & Stimulus == "Low"), frame.plot = F, type = 'n', main = "Other low", ylim = c(40, 200))
-for(i in unique(HeartRateData$subject)){
-  for( j in unique(HeartRateData$event_no[HeartRateData$subject == i])){
-    lines(hr_bpm ~ time_s, data = HeartRateData[HeartRateData$subject == i & HeartRateData$event_no == j & HeartRateData$Condition == "Other" & HeartRateData$Stimulus == "Low", ], col = col7)
+plot(EMG_corr ~ time_s, data = subset(EMGData, Condition == "Other" & Stimulus == "Low"), frame.plot = F, type = 'n', main = "Other low", ylim = c(0, 0.04))
+for(i in unique(EMGData$subject)){
+  for( j in unique(EMGData$event_no[EMGData$subject == i])){
+    lines(EMG_corr ~ time_s, data = EMGData[EMGData$subject == i & EMGData$event_no == j & EMGData$Condition == "Other" & EMGData$Stimulus == "Low", ], col = col7)
   }
 }
 
-MeanHRSelfHigh <- aggregate(hr_bpm ~ time_s, data = subset(HeartRateData, Condition == "Self" & Stimulus == "High"), mean)
-MeanHRSelfLow <- aggregate(hr_bpm ~ time_s, data = subset(HeartRateData, Condition == "Self" & Stimulus == "Low"), mean)
-MeanHROtherHigh <- aggregate(hr_bpm ~ time_s, data = subset(HeartRateData, Condition == "Other" & Stimulus == "High"), mean)
-MeanHROtherLow <- aggregate(hr_bpm ~ time_s, data = subset(HeartRateData, Condition == "Other" & Stimulus == "Low"), mean)
+MeanEMGSelfHigh <- aggregate(EMG_corr ~ time_s, data = subset(EMGData, Condition == "Self" & Stimulus == "High"), mean)
+MeanEMGSelfLow <- aggregate(EMG_corr ~ time_s, data = subset(EMGData, Condition == "Self" & Stimulus == "Low"), mean)
+MeanEMGOtherHigh <- aggregate(EMG_corr ~ time_s, data = subset(EMGData, Condition == "Other" & Stimulus == "High"), mean)
+MeanEMGOtherLow <- aggregate(EMG_corr ~ time_s, data = subset(EMGData, Condition == "Other" & Stimulus == "Low"), mean)
 
-plot(MeanHRSelfHigh, type = "l", col = col4, frame.plot = F, main = "Heart rate, self condition", ylim = c(67, 81))
-lines(MeanHRSelfLow, col = col7)
+MeanEMGSelfHighWave1 <- aggregate(EMG_corr ~ time_s, data = subset(EMGData, Condition == "Self" & Stimulus == "High" & subject %in% demData$Subject[demData$Wave == 1]), mean)
+MeanEMGSelfLowWave1 <- aggregate(EMG_corr ~ time_s, data = subset(EMGData, Condition == "Self" & Stimulus == "Low" & subject %in% demData$Subject[demData$Wave == 1]), mean)
+MeanEMGOtherHighWave1 <- aggregate(EMG_corr ~ time_s, data = subset(EMGData, Condition == "Other" & Stimulus == "High" & subject %in% demData$Subject[demData$Wave == 1]), mean)
+MeanEMGOtherLowWave1 <- aggregate(EMG_corr ~ time_s, data = subset(EMGData, Condition == "Other" & Stimulus == "Low" & subject %in% demData$Subject[demData$Wave == 1]), mean)
+
+MeanEMGSelfHighWave2 <- aggregate(EMG_corr ~ time_s, data = subset(EMGData, Condition == "Self" & Stimulus == "High" & subject %in% demData$Subject[demData$Wave == 2]), mean)
+MeanEMGSelfLowWave2 <- aggregate(EMG_corr ~ time_s, data = subset(EMGData, Condition == "Self" & Stimulus == "Low" & subject %in% demData$Subject[demData$Wave == 2]), mean)
+MeanEMGOtherHighWave2 <- aggregate(EMG_corr ~ time_s, data = subset(EMGData, Condition == "Other" & Stimulus == "High" & subject %in% demData$Subject[demData$Wave == 2]), mean)
+MeanEMGOtherLowWave2 <- aggregate(EMG_corr ~ time_s, data = subset(EMGData, Condition == "Other" & Stimulus == "Low" & subject %in% demData$Subject[demData$Wave == 2]), mean)
+
+plot(MeanEMGSelfHigh, type = "l", col = col4, frame.plot = F, main = "Corrugator EMG, self condition", ylim = c(0.0002, 0.0011))
+lines(MeanEMGSelfLow, col = col7)
+legend("topleft", lty = 1, col = c(col4, col7), legend = c("High", "Low"), bty = "n")
+#abline(v = c(0, 0.5), lty = 2)
+
+plot(MeanEMGSelfHighWave1, type = "l", col = col4, frame.plot = F, main = "Corrugator EMG, self condition, Wave 1", ylim = c(0.0002, 0.0011))
+lines(MeanEMGSelfLowWave1, col = col7)
+legend("topleft", lty = 1, col = c(col4, col7), legend = c("High", "Low"), bty = "n")
+abline(v = c(0, 3, 4), lty = 2)
+
+plot(MeanEMGOtherHighWave1, type = "l", col = col4, frame.plot = F, main = "Corrugator EMG, other condition, Wave 1", ylim = c(0.0002, 0.0011))
+lines(MeanEMGOtherLowWave1, col = col7)
+legend("topleft", lty = 1, col = c(col4, col7), legend = c("High", "Low"), bty = "n")
+abline(v = c(0, 3, 4), lty = 2)
+
+plot(MeanEMGSelfHighWave2, type = "l", col = col4, frame.plot = F, main = "Corrugator EMG, self condition, Wave 2", ylim = c(0.0002, 0.0011))
+lines(MeanEMGSelfLowWave2, col = col7)
 legend("topleft", lty = 1, col = c(col4, col7), legend = c("High", "Low"), bty = "n")
 abline(v = c(0, 0.5), lty = 2)
 
-plot(MeanHROtherHigh, type = "l", col = col4, frame.plot = F, main = "Heart rate, other condition", ylim = c(67, 81))
-lines(MeanHROtherLow, col = col7)
+plot(MeanEMGOtherHighWave2, type = "l", col = col4, frame.plot = F, main = "Corrugator EMG, other condition, Wave 2", ylim = c(0.0002, 0.0011))
+lines(MeanEMGOtherLowWave2, col = col7)
 legend("topleft", lty = 1, col = c(col4, col7), legend = c("High", "Low"), bty = "n")
 abline(v = c(0, 0.5), lty = 2)
+
+# Make figures
+pdf("Fig_EMG1.pdf", width = 4, height = 4)
+plot(MeanEMGSelfHighWave1, type = "n", col = col4, frame.plot = F, main = "A. Corrugator EMG, Self, Wave 1", ylim = c(0.0002, 0.0011), xlab = "Time (s)", ylab = "EMG (µSiemens?)", xaxt = "n", yaxt = "n")
+rect(3, 0.000001, 5, 1, col = "gray88", border = NA)
+abline(v = c(0, 3, 4), lty = 3)
+axis(1)
+axis(2, at = c(0.0002, 0.001))
+lines(MeanEMGSelfHighWave1, col = col4, lwd = 2)
+lines(MeanEMGSelfLowWave1, col = col7, lty = 5, lwd = 2)
+legend("topleft", lty = c(1, 5), lwd = 2, col = c(col4, col7), legend = c("High", "Low"), bg = "white")
+dev.off()
+
+pdf("Fig_EMG2.pdf", width = 4, height = 4)
+plot(MeanEMGOtherHighWave1, type = "n", col = col4, frame.plot = F, main = "B. Corrugator EMG, Other, Wave 1", ylim = c(0.0002, 0.0011), xlab = "Time (s)", ylab = "EMG (µSiemens?)", xaxt = "n", yaxt = "n")
+rect(3, 0.000001, 5, 1, col = "gray88", border = NA)
+abline(v = c(0, 3, 4), lty = 3)
+axis(1)
+axis(2, at = c(0.0002, 0.001))
+lines(MeanEMGOtherHighWave1, col = col4, lwd = 2)
+lines(MeanEMGOtherLowWave1, col = col7, lty = 5, lwd = 2)
+dev.off()
+
+pdf("Fig_EMG3.pdf", width = 4, height = 4)
+plot(MeanEMGSelfHighWave2, type = "n", col = col4, frame.plot = F, main = "C. Corrugator EMG, Self, Wave 2", ylim = c(0.0002, 0.0011), xlab = "Time (s)", ylab = "EMG (µSiemens?)", xaxt = "n", yaxt = "n")
+rect(0, 0.000001, 2, 1, col = "gray88", border = NA)
+abline(v = c(0, 0.5), lty = 3)
+axis(1)
+axis(2, at = c(0.0002, 0.001))
+lines(MeanEMGSelfHighWave2, col = col4, lwd = 2)
+lines(MeanEMGSelfLowWave2, col = col7, lty = 5, lwd = 2)
+dev.off()
+
+pdf("Fig_EMG4.pdf", width = 4, height = 4)
+plot(MeanEMGOtherHighWave2, type = "n", col = col4, frame.plot = F, main = "D. Corrugator EMG, Other, Wave 2", ylim = c(0.0002, 0.0011), xlab = "Time (s)", ylab = "EMG (µSiemens?)", xaxt = "n", yaxt = "n")
+rect(0, 0.000001, 2, 1, col = "gray88", border = NA)
+abline(v = c(0, 0.5), lty = 3)
+axis(1)
+axis(2, at = c(0.0002, 0.001))
+lines(MeanEMGOtherHighWave2, col = col4, lwd = 2)
+lines(MeanEMGOtherLowWave2, col = col7, lty = 5, lwd = 2)
+dev.off()
+
 
 # Since data have varying baselines between conditions, we index each response to its baseline from -2 to 0 seconds
-HeartRateData$hr_index <- NA
-for(i in unique(HeartRateData$subject)){
-  for(j in unique(HeartRateData$event_no[HeartRateData$subject == i])){
+#EMGData$hr_index <- NA
+#for(i in unique(EMGData$subject)){
+#  for(j in unique(EMGData$event_no[EMGData$subject == i])){
+#    for(k in c("Self", "Other")){
+#      for(l in c("High", "Low")){
+#        EMGData$hr_index[EMGData$subject == i & EMGData$event_no == j & EMGData$Condition == k & EMGData$Stimulus == l] <- EMGData$hr_bpm[EMGData$subject == i & EMGData$event_no == j & EMGData$Condition == k & EMGData$Stimulus == l]/mean(EMGData$hr_bpm[EMGData$subject == i & EMGData$event_no == j & EMGData$Condition == k & EMGData$Stimulus == l][1:20])
+#      }
+#    }
+#  }
+#}
+
+#MeanHRIndexSelfHigh <- aggregate(hr_index ~ time_s, data = subset(EMGData, Condition == "Self" & Stimulus == "High"), mean)
+#MeanHRIndexSelfLow <- aggregate(hr_index ~ time_s, data = subset(EMGData, Condition == "Self" & Stimulus == "Low"), mean)
+#MeanHRIndexOtherHigh <- aggregate(hr_index ~ time_s, data = subset(EMGData, Condition == "Other" & Stimulus == "High"), mean)
+#MeanHRIndexOtherLow <- aggregate(hr_index ~ time_s, data = subset(EMGData, Condition == "Other" & Stimulus == "Low"), mean)
+
+#pdf("Fig_HR1.pdf", width = 4, height = 4)
+#plot(MeanHRIndexSelfHigh, type = "n", col = col4, frame.plot = F, main = "I. Heart rate, Self", ylim = c(0.98, 1.16), xlab = "Time, s", ylab = "Heart rate, normalised ratio", xaxt = "n")
+#abline(v = c(0, 0.5), lty = 3)
+#rect(2.5, 0, 5, 1.16, col = "gray88", border = NA)
+#axis(1)
+#lines(MeanHRIndexSelfHigh, col = col4, lwd = 2)
+#lines(MeanHRIndexSelfLow, col = col7, lty = 5, lwd = 2)
+#legend("topright", lty = c(1, 5), lwd = 2, col = c(col4, col7), legend = c("High", "Low"), bg = "white")
+#dev.off()
+
+#pdf("Fig_HR2.pdf", width = 4, height = 4)
+#plot(MeanHRIndexOtherHigh, type = "n", col = col4, frame.plot = F, main = "J. Heart rate, Other", ylim = c(0.98, 1.16), xlab = "Time, s", ylab = "Heart rate, normalised ratio")
+#abline(v = c(0, 0.5), lty = 3)
+#rect(2.5, 0, 5, 1.16, col = "gray88", border = NA)
+#lines(MeanHRIndexOtherHigh, col = col4, lwd = 2)
+#lines(MeanHRIndexOtherLow, col = col7, lty = 5, lwd = 2)
+#dev.off()
+
+# Average data over interval for each event for statistical modelling
+EMGEventData <- data.frame()
+for(i in unique(EMGData$subject)){
+  for(j in unique(EMGData$event_no[EMGData$subject == i])){
     for(k in c("Self", "Other")){
       for(l in c("High", "Low")){
-        HeartRateData$hr_index[HeartRateData$subject == i & HeartRateData$event_no == j & HeartRateData$Condition == k & HeartRateData$Stimulus == l] <- HeartRateData$hr_bpm[HeartRateData$subject == i & HeartRateData$event_no == j & HeartRateData$Condition == k & HeartRateData$Stimulus == l]/mean(HeartRateData$hr_bpm[HeartRateData$subject == i & HeartRateData$event_no == j & HeartRateData$Condition == k & HeartRateData$Stimulus == l][1:20])
+        if(i %in% demData$Subject[demData$Wave == 1]){
+          EMG_corr_mean <- mean(EMGData$EMG_corr[EMGData$subject == i & EMGData$event_no == j & EMGData$Condition == k & EMGData$Stimulus == l][50:70])
+          EMGEventData <- rbind(EMGEventData, data.frame(i, j, k, l, EMG_corr_mean))
+        } else if(i %in% demData$Subject[demData$Wave == 2]){
+          EMG_corr_mean <- mean(EMGData$EMG_corr[EMGData$subject == i & EMGData$event_no == j & EMGData$Condition == k & EMGData$Stimulus == l][20:40])
+          EMGEventData <- rbind(EMGEventData, data.frame(i, j, k, l, EMG_corr_mean))
+        }
       }
     }
   }
 }
+names(EMGEventData) <- c("Subject", "event_no", "Condition", "Stimulus", "EMG_corr_mean")
 
-MeanHRIndexSelfHigh <- aggregate(hr_index ~ time_s, data = subset(HeartRateData, Condition == "Self" & Stimulus == "High"), mean)
-MeanHRIndexSelfLow <- aggregate(hr_index ~ time_s, data = subset(HeartRateData, Condition == "Self" & Stimulus == "Low"), mean)
-MeanHRIndexOtherHigh <- aggregate(hr_index ~ time_s, data = subset(HeartRateData, Condition == "Other" & Stimulus == "High"), mean)
-MeanHRIndexOtherLow <- aggregate(hr_index ~ time_s, data = subset(HeartRateData, Condition == "Other" & Stimulus == "Low"), mean)
-
-pdf("Fig_HR1.pdf", width = 4, height = 4)
-plot(MeanHRIndexSelfHigh, type = "n", col = col4, frame.plot = F, main = "I. Heart rate, Self", ylim = c(0.98, 1.16), xlab = "Time, s", ylab = "Heart rate, normalised ratio", xaxt = "n")
-abline(v = c(0, 0.5), lty = 3)
-rect(2.5, 0, 5, 1.16, col = "gray88", border = NA)
-axis(1)
-lines(MeanHRIndexSelfHigh, col = col4, lwd = 2)
-lines(MeanHRIndexSelfLow, col = col7, lty = 5, lwd = 2)
-legend("topright", lty = c(1, 5), lwd = 2, col = c(col4, col7), legend = c("High", "Low"), bg = "white")
-dev.off()
-
-pdf("Fig_HR2.pdf", width = 4, height = 4)
-plot(MeanHRIndexOtherHigh, type = "n", col = col4, frame.plot = F, main = "J. Heart rate, Other", ylim = c(0.98, 1.16), xlab = "Time, s", ylab = "Heart rate, normalised ratio")
-abline(v = c(0, 0.5), lty = 3)
-rect(2.5, 0, 5, 1.16, col = "gray88", border = NA)
-lines(MeanHRIndexOtherHigh, col = col4, lwd = 2)
-lines(MeanHRIndexOtherLow, col = col7, lty = 5, lwd = 2)
-dev.off()
-
-# Average data over 2-5 second interval for each event for statistical modelling
-HeartRateEventData <- data.frame()
-for(i in unique(HeartRateData$subject)){
-  for(j in unique(HeartRateData$event_no[HeartRateData$subject == i])){
-    for(k in c("Self", "Other")){
-      for(l in c("High", "Low")){
-        hr_mean <- mean(HeartRateData$hr_index[HeartRateData$subject == i & HeartRateData$event_no == j & HeartRateData$Condition == k & HeartRateData$Stimulus == l][40:70])
-        HeartRateEventData <- rbind(HeartRateEventData, data.frame(i, j, k, l, hr_mean))
-      }
-    }
-  }
-}
-names(HeartRateEventData) <- c("Subject", "event_no", "Condition", "Stimulus", "hr_mean")
+EMGEventData$EMG_corr_mean <- log(EMGEventData$EMG_corr_mean)
 
 # Analyse data
 # Include IRI-EC terms in model since we wish to control for baseline empathic propensity 
-HeartRateEventData <- merge(HeartRateEventData, demData, by = "Subject")
+EMGEventData <- merge(EMGEventData, demData, by = "Subject")
 
 # Make a new column to specify an "Other High" contrast in modelling
-HeartRateEventData$Condition <- ordered(HeartRateEventData$Condition, levels = c("Other", "Self"))
+EMGEventData$Condition <- ordered(EMGEventData$Condition, levels = c("Other", "Self"))
 
-HeartRateEventData$OtherHigh <- as.numeric(HeartRateEventData$Condition)*as.numeric(HeartRateEventData$Stimulus)
-HeartRateEventData$OtherHigh[HeartRateEventData$OtherHigh == 1] <- 1
-HeartRateEventData$OtherHigh[HeartRateEventData$OtherHigh != 1] <- 0
+EMGEventData$OtherHigh <- as.numeric(EMGEventData$Condition)*as.numeric(EMGEventData$Stimulus)
+EMGEventData$OtherHigh[EMGEventData$OtherHigh == 1] <- 1
+EMGEventData$OtherHigh[EMGEventData$OtherHigh != 1] <- 0
 
 # z-transform IRI-EC
-HeartRateEventData$IRI_EC_z <- scale(HeartRateEventData$IRI_EC)
+EMGEventData$IRI_EC_z <- scale(EMGEventData$IRI_EC)
 
 # Make a regressor for predictor in other high condition only
-HeartRateEventData$IRI_EC_z_OtherHigh <- HeartRateEventData$IRI_EC_z * HeartRateEventData$OtherHigh
+EMGEventData$IRI_EC_z_OtherHigh <- EMGEventData$IRI_EC_z * EMGEventData$OtherHigh
 
 # Mean center the new regressor
-HeartRateEventData$IRI_EC_z_OtherHigh[HeartRateEventData$IRI_EC_z_OtherHigh > 0 & !is.na(HeartRateEventData$IRI_EC_z_OtherHigh)] <- HeartRateEventData$IRI_EC_z_OtherHigh[HeartRateEventData$IRI_EC_z_OtherHigh > 0 & !is.na(HeartRateEventData$IRI_EC_z_OtherHigh)] - mean(HeartRateEventData$IRI_EC_z_OtherHigh[HeartRateEventData$IRI_EC_z_OtherHigh > 0 & !is.na(HeartRateEventData$IRI_EC_z_OtherHigh)], na.rm = TRUE)
+EMGEventData$IRI_EC_z_OtherHigh[EMGEventData$IRI_EC_z_OtherHigh > 0 & !is.na(EMGEventData$IRI_EC_z_OtherHigh)] <- EMGEventData$IRI_EC_z_OtherHigh[EMGEventData$IRI_EC_z_OtherHigh > 0 & !is.na(EMGEventData$IRI_EC_z_OtherHigh)] - mean(EMGEventData$IRI_EC_z_OtherHigh[EMGEventData$IRI_EC_z_OtherHigh > 0 & !is.na(EMGEventData$IRI_EC_z_OtherHigh)], na.rm = TRUE)
 
 # Build model
-lme1 <- lme(hr_mean ~ Treatment*Stimulus*Condition + IRI_EC_z + IRI_EC_z_OtherHigh, data = HeartRateEventData, random = ~1|Subject, na.action = na.omit)
+lme1 <- lme(EMG_corr_mean ~ Treatment*Stimulus*Condition + IRI_EC_z + IRI_EC_z_OtherHigh + Wave, data = EMGEventData, random = ~1|Subject, na.action = na.omit)
 
 plot(lme1)
 summary(lme1)
@@ -279,18 +359,18 @@ intervals(lme1)
 
 eff1 <- effect("Treatment*Stimulus*Condition", lme1)
 
-pdf("Fig_HR3.pdf", width = 4, height = 4)
+pdf("Fig_EMG5.pdf", width = 4, height = 4)
 plot(c(eff1$fit[6], eff1$fit[8]),
      type = "b",
      frame.plot = F,
-     ylab = "Heart rate, normalised ratio",
+     ylab = "log mean EMG",
      xlab = "Shock intensity",
      xaxt = "n",
      yaxt = "n",
      xlim = c(1, 2.1),
-     ylim = c(0.95, 1.12),
+     ylim = c(-8.7, -7.7),
      col = col1,
-     main = "K. Heart rate, Self"
+     main = "E. Corrugator EMG, Self"
 )
 lines(c(1.1, 2.1), c(eff1$fit[5], eff1$fit[7]), type = "b", col = col2, pch = 16)
 lines(c(1, 1), c(eff1$upper[6], eff1$lower[6]), col = col1)
@@ -298,22 +378,22 @@ lines(c(2, 2), c(eff1$upper[8], eff1$lower[8]), col = col1)
 lines(c(1.1, 1.1), c(eff1$upper[5], eff1$lower[5]), col = col2)
 lines(c(2.1, 2.1), c(eff1$upper[7], eff1$lower[7]), col = col2)
 axis(1, at = c(1.05, 2.05), labels = c("High", "Low"))
-axis(2, at = c(0.95, 1, 1.05, 1.1))
+axis(2, at = c(-8.7, -8.2, -7.7))
 legend("topright", col = c(col1, col2), pch = c(1, 16), legend = c("Placebo", "Oxazepam"), bty = "n")
 dev.off()
 
-pdf("Fig_HR4.pdf", width = 4, height = 4)
+pdf("Fig_EMG6.pdf", width = 4, height = 4)
 plot(c(eff1$fit[2], eff1$fit[4]),
      type = "b",
      frame.plot = F,
-     ylab = "Heart rate, normalised ratio",
+     ylab = "log mean EMG",
      xlab = "Shock intensity",
      xaxt = "n",
      yaxt = "n",
      xlim = c(1, 2.1),
-     ylim = c(0.95, 1.12),
+     ylim = c(-8.7, -7.7),
      col = col1,
-     main = "L. Heart rate, Other"
+     main = "F. Corrugator EMG, Other"
 )
 lines(c(1.1, 2.1), c(eff1$fit[1], eff1$fit[3]), type = "b", col = col2, pch = 16)
 lines(c(1, 1), c(eff1$upper[2], eff1$lower[2]), col = col1)
@@ -321,7 +401,7 @@ lines(c(2, 2), c(eff1$upper[4], eff1$lower[4]), col = col1)
 lines(c(1.1, 1.1), c(eff1$upper[1], eff1$lower[1]), col = col2)
 lines(c(2.1, 2.1), c(eff1$upper[3], eff1$lower[3]), col = col2)
 axis(1, at = c(1.05, 2.05), labels = c("High", "Low"))
-axis(2, at = c(0.95, 1, 1.05, 1.1))
+axis(2, at = c(-8.7, -8.2, -7.7))
 dev.off()
 
 # Compare plots to less custom-generated output for verification
@@ -334,79 +414,79 @@ plot(effect("IRI_EC_z_OtherHigh", lme1))
 # The procedure follows the same logic as above
 
 # IRI-PT
-HeartRateEventData$IRI_PT_z <- scale(HeartRateEventData$IRI_PT)
-HeartRateEventData$IRI_PT_z_OtherHigh <- HeartRateEventData$IRI_PT_z * HeartRateEventData$OtherHigh
-HeartRateEventData$IRI_PT_z_OtherHigh[HeartRateEventData$IRI_PT_z_OtherHigh > 0 & !is.na(HeartRateEventData$IRI_PT_z_OtherHigh)] <- HeartRateEventData$IRI_PT_z_OtherHigh[HeartRateEventData$IRI_PT_z_OtherHigh > 0 & !is.na(HeartRateEventData$IRI_PT_z_OtherHigh)] - mean(HeartRateEventData$IRI_PT_z_OtherHigh[HeartRateEventData$IRI_PT_z_OtherHigh > 0 & !is.na(HeartRateEventData$IRI_PT_z_OtherHigh)], na.rm = TRUE)
-lme2 <- lme(hr_mean ~ Treatment*Stimulus*Condition + IRI_PT_z + IRI_PT_z_OtherHigh, data = HeartRateEventData, random = ~1|Subject, na.action = na.omit)
+EMGEventData$IRI_PT_z <- scale(EMGEventData$IRI_PT)
+EMGEventData$IRI_PT_z_OtherHigh <- EMGEventData$IRI_PT_z * EMGEventData$OtherHigh
+EMGEventData$IRI_PT_z_OtherHigh[EMGEventData$IRI_PT_z_OtherHigh > 0 & !is.na(EMGEventData$IRI_PT_z_OtherHigh)] <- EMGEventData$IRI_PT_z_OtherHigh[EMGEventData$IRI_PT_z_OtherHigh > 0 & !is.na(EMGEventData$IRI_PT_z_OtherHigh)] - mean(EMGEventData$IRI_PT_z_OtherHigh[EMGEventData$IRI_PT_z_OtherHigh > 0 & !is.na(EMGEventData$IRI_PT_z_OtherHigh)], na.rm = TRUE)
+lme2 <- lme(EMG_corr_mean ~ Treatment*Stimulus*Condition + IRI_PT_z + IRI_PT_z_OtherHigh + Wave, data = EMGEventData, random = ~1|Subject, na.action = na.omit)
 plot(lme2)
 summary(lme2)
 intervals(lme2)
 
 # IRI-PD
-HeartRateEventData$IRI_PD_z <- scale(HeartRateEventData$IRI_PD)
-HeartRateEventData$IRI_PD_z_OtherHigh <- HeartRateEventData$IRI_PD_z * HeartRateEventData$OtherHigh
-HeartRateEventData$IRI_PD_z_OtherHigh[HeartRateEventData$IRI_PD_z_OtherHigh > 0 & !is.na(HeartRateEventData$IRI_PD_z_OtherHigh)] <- HeartRateEventData$IRI_PD_z_OtherHigh[HeartRateEventData$IRI_PD_z_OtherHigh > 0 & !is.na(HeartRateEventData$IRI_PD_z_OtherHigh)] - mean(HeartRateEventData$IRI_PD_z_OtherHigh[HeartRateEventData$IRI_PD_z_OtherHigh > 0 & !is.na(HeartRateEventData$IRI_PD_z_OtherHigh)], na.rm = TRUE)
-lme3 <- lme(hr_mean ~ Treatment*Stimulus*Condition + IRI_PD_z + IRI_PD_z_OtherHigh, data = HeartRateEventData, random = ~1|Subject, na.action = na.omit)
+EMGEventData$IRI_PD_z <- scale(EMGEventData$IRI_PD)
+EMGEventData$IRI_PD_z_OtherHigh <- EMGEventData$IRI_PD_z * EMGEventData$OtherHigh
+EMGEventData$IRI_PD_z_OtherHigh[EMGEventData$IRI_PD_z_OtherHigh > 0 & !is.na(EMGEventData$IRI_PD_z_OtherHigh)] <- EMGEventData$IRI_PD_z_OtherHigh[EMGEventData$IRI_PD_z_OtherHigh > 0 & !is.na(EMGEventData$IRI_PD_z_OtherHigh)] - mean(EMGEventData$IRI_PD_z_OtherHigh[EMGEventData$IRI_PD_z_OtherHigh > 0 & !is.na(EMGEventData$IRI_PD_z_OtherHigh)], na.rm = TRUE)
+lme3 <- lme(EMG_corr_mean ~ Treatment*Stimulus*Condition + IRI_PD_z + IRI_PD_z_OtherHigh + Wave, data = EMGEventData, random = ~1|Subject, na.action = na.omit)
 plot(lme3)
 summary(lme3)
 intervals(lme3)
 
 # IRI-F
-HeartRateEventData$IRI_F_z <- scale(HeartRateEventData$IRI_F)
-HeartRateEventData$IRI_F_z_OtherHigh <- HeartRateEventData$IRI_F_z * HeartRateEventData$OtherHigh
-HeartRateEventData$IRI_F_z_OtherHigh[HeartRateEventData$IRI_F_z_OtherHigh > 0 & !is.na(HeartRateEventData$IRI_F_z_OtherHigh)] <- HeartRateEventData$IRI_F_z_OtherHigh[HeartRateEventData$IRI_F_z_OtherHigh > 0 & !is.na(HeartRateEventData$IRI_F_z_OtherHigh)] - mean(HeartRateEventData$IRI_F_z_OtherHigh[HeartRateEventData$IRI_F_z_OtherHigh > 0 & !is.na(HeartRateEventData$IRI_F_z_OtherHigh)], na.rm = TRUE)
-lme4 <- lme(hr_mean ~ Treatment*Stimulus*Condition + IRI_F_z + IRI_F_z_OtherHigh, data = HeartRateEventData, random = ~1|Subject, na.action = na.omit)
+EMGEventData$IRI_F_z <- scale(EMGEventData$IRI_F)
+EMGEventData$IRI_F_z_OtherHigh <- EMGEventData$IRI_F_z * EMGEventData$OtherHigh
+EMGEventData$IRI_F_z_OtherHigh[EMGEventData$IRI_F_z_OtherHigh > 0 & !is.na(EMGEventData$IRI_F_z_OtherHigh)] <- EMGEventData$IRI_F_z_OtherHigh[EMGEventData$IRI_F_z_OtherHigh > 0 & !is.na(EMGEventData$IRI_F_z_OtherHigh)] - mean(EMGEventData$IRI_F_z_OtherHigh[EMGEventData$IRI_F_z_OtherHigh > 0 & !is.na(EMGEventData$IRI_F_z_OtherHigh)], na.rm = TRUE)
+lme4 <- lme(EMG_corr_mean ~ Treatment*Stimulus*Condition + IRI_F_z + IRI_F_z_OtherHigh + Wave, data = EMGEventData, random = ~1|Subject, na.action = na.omit)
 plot(lme4)
 summary(lme4)
 intervals(lme4)
 
 # STAI-T
-HeartRateEventData$STAI.T_z <- scale(HeartRateEventData$STAI.T)
-HeartRateEventData$STAI.T_z_OtherHigh <- HeartRateEventData$STAI.T_z * HeartRateEventData$OtherHigh
-HeartRateEventData$STAI.T_z_OtherHigh[HeartRateEventData$STAI.T_z_OtherHigh > 0 & !is.na(HeartRateEventData$STAI.T_z_OtherHigh)] <- HeartRateEventData$STAI.T_z_OtherHigh[HeartRateEventData$STAI.T_z_OtherHigh > 0 & !is.na(HeartRateEventData$STAI.T_z_OtherHigh)] - mean(HeartRateEventData$STAI.T_z_OtherHigh[HeartRateEventData$STAI.T_z_OtherHigh > 0 & !is.na(HeartRateEventData$STAI.T_z_OtherHigh)], na.rm = TRUE)
-lme5 <- lme(hr_mean ~ Treatment*Stimulus*Condition + STAI.T_z + STAI.T_z_OtherHigh, data = HeartRateEventData, random = ~1|Subject, na.action = na.omit)
+EMGEventData$STAI.T_z <- scale(EMGEventData$STAI.T)
+EMGEventData$STAI.T_z_OtherHigh <- EMGEventData$STAI.T_z * EMGEventData$OtherHigh
+EMGEventData$STAI.T_z_OtherHigh[EMGEventData$STAI.T_z_OtherHigh > 0 & !is.na(EMGEventData$STAI.T_z_OtherHigh)] <- EMGEventData$STAI.T_z_OtherHigh[EMGEventData$STAI.T_z_OtherHigh > 0 & !is.na(EMGEventData$STAI.T_z_OtherHigh)] - mean(EMGEventData$STAI.T_z_OtherHigh[EMGEventData$STAI.T_z_OtherHigh > 0 & !is.na(EMGEventData$STAI.T_z_OtherHigh)], na.rm = TRUE)
+lme5 <- lme(EMG_corr_mean ~ Treatment*Stimulus*Condition + STAI.T_z + STAI.T_z_OtherHigh + Wave, data = EMGEventData, random = ~1|Subject, na.action = na.omit)
 plot(lme5)
 summary(lme5)
 intervals(lme5)
 
 # TAS-20
-HeartRateEventData$TAS.20_z <- scale(HeartRateEventData$TAS.20)
-HeartRateEventData$TAS.20_z_OtherHigh <- HeartRateEventData$TAS.20_z * HeartRateEventData$OtherHigh
-HeartRateEventData$TAS.20_z_OtherHigh[HeartRateEventData$TAS.20_z_OtherHigh > 0 & !is.na(HeartRateEventData$TAS.20_z_OtherHigh)] <- HeartRateEventData$TAS.20_z_OtherHigh[HeartRateEventData$TAS.20_z_OtherHigh > 0 & !is.na(HeartRateEventData$TAS.20_z_OtherHigh)] - mean(HeartRateEventData$TAS.20_z_OtherHigh[HeartRateEventData$TAS.20_z_OtherHigh > 0 & !is.na(HeartRateEventData$TAS.20_z_OtherHigh)], na.rm = TRUE)
-lme6 <- lme(hr_mean ~ Treatment*Stimulus*Condition + TAS.20_z + TAS.20_z_OtherHigh, data = HeartRateEventData, random = ~1|Subject, na.action = na.omit)
+EMGEventData$TAS.20_z <- scale(EMGEventData$TAS.20)
+EMGEventData$TAS.20_z_OtherHigh <- EMGEventData$TAS.20_z * EMGEventData$OtherHigh
+EMGEventData$TAS.20_z_OtherHigh[EMGEventData$TAS.20_z_OtherHigh > 0 & !is.na(EMGEventData$TAS.20_z_OtherHigh)] <- EMGEventData$TAS.20_z_OtherHigh[EMGEventData$TAS.20_z_OtherHigh > 0 & !is.na(EMGEventData$TAS.20_z_OtherHigh)] - mean(EMGEventData$TAS.20_z_OtherHigh[EMGEventData$TAS.20_z_OtherHigh > 0 & !is.na(EMGEventData$TAS.20_z_OtherHigh)], na.rm = TRUE)
+lme6 <- lme(EMG_corr_mean ~ Treatment*Stimulus*Condition + TAS.20_z + TAS.20_z_OtherHigh + Wave, data = EMGEventData, random = ~1|Subject, na.action = na.omit)
 plot(lme6)
 summary(lme6)
 intervals(lme6)
 
 # PPI-R-SCI
-HeartRateEventData$PPI_SCI_z <- HeartRateEventData$PPI_1_SCI_R
-HeartRateEventData$PPI_SCI_z[HeartRateEventData$PPI_1_IR >= 45] <- NA # Exclude participants with too high scores on Inconsistent Responding measure
-HeartRateEventData$PPI_SCI_z <- scale(HeartRateEventData$PPI_SCI_z)
-HeartRateEventData$PPI_SCI_z_OtherHigh <- HeartRateEventData$PPI_SCI_z * HeartRateEventData$OtherHigh
-HeartRateEventData$PPI_SCI_z_OtherHigh[HeartRateEventData$PPI_SCI_z_OtherHigh > 0 & !is.na(HeartRateEventData$PPI_SCI_z_OtherHigh)] <- HeartRateEventData$PPI_SCI_z_OtherHigh[HeartRateEventData$PPI_SCI_z_OtherHigh > 0 & !is.na(HeartRateEventData$PPI_SCI_z_OtherHigh)] - mean(HeartRateEventData$PPI_SCI_z_OtherHigh[HeartRateEventData$PPI_SCI_z_OtherHigh > 0 & !is.na(HeartRateEventData$PPI_SCI_z_OtherHigh)], na.rm = TRUE)
-lme7 <- lme(hr_mean ~ Treatment*Stimulus*Condition + PPI_SCI_z + PPI_SCI_z_OtherHigh, data = HeartRateEventData, random = ~1|Subject, na.action = na.omit)
+EMGEventData$PPI_SCI_z <- EMGEventData$PPI_1_SCI_R
+EMGEventData$PPI_SCI_z[EMGEventData$PPI_1_IR >= 45] <- NA # Exclude participants with too high scores on Inconsistent Responding measure
+EMGEventData$PPI_SCI_z <- scale(EMGEventData$PPI_SCI_z)
+EMGEventData$PPI_SCI_z_OtherHigh <- EMGEventData$PPI_SCI_z * EMGEventData$OtherHigh
+EMGEventData$PPI_SCI_z_OtherHigh[EMGEventData$PPI_SCI_z_OtherHigh > 0 & !is.na(EMGEventData$PPI_SCI_z_OtherHigh)] <- EMGEventData$PPI_SCI_z_OtherHigh[EMGEventData$PPI_SCI_z_OtherHigh > 0 & !is.na(EMGEventData$PPI_SCI_z_OtherHigh)] - mean(EMGEventData$PPI_SCI_z_OtherHigh[EMGEventData$PPI_SCI_z_OtherHigh > 0 & !is.na(EMGEventData$PPI_SCI_z_OtherHigh)], na.rm = TRUE)
+lme7 <- lme(EMG_corr_mean ~ Treatment*Stimulus*Condition + PPI_SCI_z + PPI_SCI_z_OtherHigh + Wave, data = EMGEventData, random = ~1|Subject, na.action = na.omit)
 plot(lme7)
 summary(lme7)
 intervals(lme7)
 
 # PPI-R-FD
-HeartRateEventData$PPI_FD_z <- HeartRateEventData$PPI_1_FD_R
-HeartRateEventData$PPI_FD_z[HeartRateEventData$PPI_1_IR >= 45] <- NA # Exclude participants with too high scores on Inconsistent Responding measure
-HeartRateEventData$PPI_FD_z <- scale(HeartRateEventData$PPI_FD_z)
-HeartRateEventData$PPI_FD_z_OtherHigh <- HeartRateEventData$PPI_FD_z * HeartRateEventData$OtherHigh
-HeartRateEventData$PPI_FD_z_OtherHigh[HeartRateEventData$PPI_FD_z_OtherHigh > 0 & !is.na(HeartRateEventData$PPI_FD_z_OtherHigh)] <- HeartRateEventData$PPI_FD_z_OtherHigh[HeartRateEventData$PPI_FD_z_OtherHigh > 0 & !is.na(HeartRateEventData$PPI_FD_z_OtherHigh)] - mean(HeartRateEventData$PPI_FD_z_OtherHigh[HeartRateEventData$PPI_FD_z_OtherHigh > 0 & !is.na(HeartRateEventData$PPI_FD_z_OtherHigh)], na.rm = TRUE)
-lme8 <- lme(hr_mean ~ Treatment*Stimulus*Condition + PPI_FD_z + PPI_FD_z_OtherHigh, data = HeartRateEventData, random = ~1|Subject, na.action = na.omit)
+EMGEventData$PPI_FD_z <- EMGEventData$PPI_1_FD_R
+EMGEventData$PPI_FD_z[EMGEventData$PPI_1_IR >= 45] <- NA # Exclude participants with too high scores on Inconsistent Responding measure
+EMGEventData$PPI_FD_z <- scale(EMGEventData$PPI_FD_z)
+EMGEventData$PPI_FD_z_OtherHigh <- EMGEventData$PPI_FD_z * EMGEventData$OtherHigh
+EMGEventData$PPI_FD_z_OtherHigh[EMGEventData$PPI_FD_z_OtherHigh > 0 & !is.na(EMGEventData$PPI_FD_z_OtherHigh)] <- EMGEventData$PPI_FD_z_OtherHigh[EMGEventData$PPI_FD_z_OtherHigh > 0 & !is.na(EMGEventData$PPI_FD_z_OtherHigh)] - mean(EMGEventData$PPI_FD_z_OtherHigh[EMGEventData$PPI_FD_z_OtherHigh > 0 & !is.na(EMGEventData$PPI_FD_z_OtherHigh)], na.rm = TRUE)
+lme8 <- lme(EMG_corr_mean ~ Treatment*Stimulus*Condition + PPI_FD_z + PPI_FD_z_OtherHigh + Wave, data = EMGEventData, random = ~1|Subject, na.action = na.omit)
 plot(lme8)
 summary(lme8)
 intervals(lme8)
 
 # PPI-R-C
-HeartRateEventData$PPI_C_z <- HeartRateEventData$PPI_1_C_R
-HeartRateEventData$PPI_C_z[HeartRateEventData$PPI_1_IR >= 45] <- NA # Exclude participants with too high scores on Inconsistent Responding measure
-HeartRateEventData$PPI_C_z <- scale(HeartRateEventData$PPI_C_z)
-HeartRateEventData$PPI_C_z_OtherHigh <- HeartRateEventData$PPI_C_z * HeartRateEventData$OtherHigh
-HeartRateEventData$PPI_C_z_OtherHigh[HeartRateEventData$PPI_C_z_OtherHigh > 0 & !is.na(HeartRateEventData$PPI_C_z_OtherHigh)] <- HeartRateEventData$PPI_C_z_OtherHigh[HeartRateEventData$PPI_C_z_OtherHigh > 0 & !is.na(HeartRateEventData$PPI_C_z_OtherHigh)] - mean(HeartRateEventData$PPI_C_z_OtherHigh[HeartRateEventData$PPI_C_z_OtherHigh > 0 & !is.na(HeartRateEventData$PPI_C_z_OtherHigh)], na.rm = TRUE)
-lme9 <- lme(hr_mean ~ Treatment*Stimulus*Condition + PPI_C_z + PPI_C_z_OtherHigh, data = HeartRateEventData, random = ~1|Subject, na.action = na.omit)
+EMGEventData$PPI_C_z <- EMGEventData$PPI_1_C_R
+EMGEventData$PPI_C_z[EMGEventData$PPI_1_IR >= 45] <- NA # Exclude participants with too high scores on Inconsistent Responding measure
+EMGEventData$PPI_C_z <- scale(EMGEventData$PPI_C_z)
+EMGEventData$PPI_C_z_OtherHigh <- EMGEventData$PPI_C_z * EMGEventData$OtherHigh
+EMGEventData$PPI_C_z_OtherHigh[EMGEventData$PPI_C_z_OtherHigh > 0 & !is.na(EMGEventData$PPI_C_z_OtherHigh)] <- EMGEventData$PPI_C_z_OtherHigh[EMGEventData$PPI_C_z_OtherHigh > 0 & !is.na(EMGEventData$PPI_C_z_OtherHigh)] - mean(EMGEventData$PPI_C_z_OtherHigh[EMGEventData$PPI_C_z_OtherHigh > 0 & !is.na(EMGEventData$PPI_C_z_OtherHigh)], na.rm = TRUE)
+lme9 <- lme(EMG_corr_mean ~ Treatment*Stimulus*Condition + PPI_C_z + PPI_C_z_OtherHigh + Wave, data = EMGEventData, random = ~1|Subject, na.action = na.omit)
 plot(lme9)
 summary(lme9)
 intervals(lme9)
@@ -424,7 +504,7 @@ data_main <- rbind(data_main, data.frame(scale = "IRI-PT", beta = intervals(lme2
 data_main <- rbind(data_main, data.frame(scale = "IRI-EC", beta = intervals(lme1)$fixed[5, 2], lower = intervals(lme1)$fixed[5, 1], upper = intervals(lme1)$fixed[5, 3], group = "IRI"))
 
 # Make plot
-pdf("Fig_HR5.pdf", width = 4, height = 4)
+pdf("Fig_EMG7.pdf", width = 4, height = 4)
 axis.L <- function(side, ..., line.col){
   if (side %in% c("bottom", "left")) {
     col <- trellis.par.get("axis.text")$col
@@ -446,7 +526,7 @@ segplot(scale ~ lower + upper, data = data_main,
         par.settings = sty,
         axis=axis.L,
         xlab = "Beta, 95% CI",
-        main = "C. Heart rate",
+        main = "D. Corrugator EMG",
         panel = function (x,y,z,...){
           panel.segplot(x,y,z,...)
           panel.abline(v=0,lty=2)
@@ -465,7 +545,7 @@ data_emp <- rbind(data_emp, data.frame(scale = "IRI-PT", beta = intervals(lme2)$
 data_emp <- rbind(data_emp, data.frame(scale = "IRI-EC", beta = intervals(lme1)$fixed[6, 2], lower = intervals(lme1)$fixed[6, 1], upper = intervals(lme1)$fixed[6, 3], group = "IRI"))
 
 # Make plot
-pdf("Fig_HR6.pdf", width = 4, height = 4)
+pdf("Fig_EMG8.pdf", width = 4, height = 4)
 axis.L <- function(side, ..., line.col){
   if (side %in% c("bottom", "left")) {
     col <- trellis.par.get("axis.text")$col
@@ -487,7 +567,7 @@ segplot(scale ~ lower + upper, data = data_emp,
         par.settings = sty,
         axis=axis.L,
         xlab = "Beta, 95% CI",
-        main = "C. Heart rate",
+        main = "D. Corrugator EMG",
         panel = function (x,y,z,...){
           panel.segplot(x,y,z,...)
           panel.abline(v=0,lty=2)
