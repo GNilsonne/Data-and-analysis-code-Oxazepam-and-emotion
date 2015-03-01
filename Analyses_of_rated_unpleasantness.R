@@ -19,7 +19,7 @@ col7 = brewer.pal(8, "Dark2")[7]
 col8 = brewer.pal(8, "Dark2")[8]
 
 # Read data
-ratingsDataURL <- getURL("https://raw.githubusercontent.com/GNilsonne/Data-and-analysis-code-Oxazepam-and-emotion/master/ratedUnpleasantness.csv", ssl.verifypeer = FALSE)
+ratingsDataURL <- getURL("https://raw.githubusercontent.com/GNilsonne/Data-and-analysis-code-Oxazepam-and-emotion/master/Ratings.csv", ssl.verifypeer = FALSE)
 ratingsData <- read.csv(text = ratingsDataURL)
 
 demDataURL <- getURL("https://raw.githubusercontent.com/GNilsonne/Data-and-analysis-code-Oxazepam-and-emotion/master/demographics.csv", ssl.verifypeer = FALSE)
@@ -63,7 +63,7 @@ intervals(lme1)
 eff1 <- effect("Treatment*Stimulus*Condition", lme1)
 
 pdf("Fig_Unpleasantness1.pdf", width = 4, height = 4)
-plot(c(eff1$fit[5], eff1$fit[7]),
+plot(c(eff1$fit[6], eff1$fit[8]),
      type = "b",
      frame.plot = F,
      ylab = "VAS",
@@ -71,20 +71,20 @@ plot(c(eff1$fit[5], eff1$fit[7]),
      xaxt = "n",
      xlim = c(1, 2.1),
      ylim = c(0, 50),
-     col = col2,
-     main = "A. Rated unpleasantness, Self",
-     pch = 16)
-lines(c(1.1, 2.1), c(eff1$fit[6], eff1$fit[8]), type = "b", col = col1)
-lines(c(1, 1), c(eff1$upper[5], eff1$lower[5]), col = col2)
-lines(c(2, 2), c(eff1$upper[7], eff1$lower[7]), col = col2)
-lines(c(1.1, 1.1), c(eff1$upper[6], eff1$lower[6]), col = col1)
-lines(c(2.1, 2.1), c(eff1$upper[8], eff1$lower[8]), col = col1)
+     col = col1,
+     main = "A. Rated unpleasantness, Self"
+     )
+lines(c(1.1, 2.1), c(eff1$fit[5], eff1$fit[7]), type = "b", col = col2, pch = 16)
+lines(c(1, 1), c(eff1$upper[6], eff1$lower[6]), col = col1)
+lines(c(2, 2), c(eff1$upper[8], eff1$lower[8]), col = col1)
+lines(c(1.1, 1.1), c(eff1$upper[5], eff1$lower[5]), col = col2)
+lines(c(2.1, 2.1), c(eff1$upper[7], eff1$lower[7]), col = col2)
 axis(1, at = c(1.05, 2.05), labels = c("High", "Low"))
-legend("topright", col = c(col1, col2), pch = c(1, 16), legend = c("Placebo", "Oxazepam"), bty = "n")
+legend("topright", col = c(col1, col2), pch = c(1, 16), legend = c("Placebo", "Oxazepam"), bty = "n", lty = 1)
 dev.off()
 
 pdf("Fig_Unpleasantness2.pdf", width = 4, height = 4)
-plot(c(eff1$fit[1], eff1$fit[3]),
+plot(c(eff1$fit[2], eff1$fit[4]),
      type = "b",
      frame.plot = F,
      ylab = "VAS",
@@ -92,14 +92,13 @@ plot(c(eff1$fit[1], eff1$fit[3]),
      xaxt = "n",
      xlim = c(1, 2.1),
      ylim = c(0, 50),
-     col = col2,
-     main = "B. Rated unpleasantness, Other",
-     pch = 16)
-lines(c(1.1, 2.1), c(eff1$fit[2], eff1$fit[4]), type = "b", col = col1)
-lines(c(1, 1), c(eff1$upper[1], eff1$lower[1]), col = col2)
-lines(c(2, 2), c(eff1$upper[3], eff1$lower[3]), col = col2)
-lines(c(1.1, 1.1), c(eff1$upper[2], eff1$lower[2]), col = col1)
-lines(c(2.1, 2.1), c(eff1$upper[4], eff1$lower[4]), col = col1)
+     col = col1,
+     main = "B. Rated unpleasantness, Other")
+lines(c(1.1, 2.1), c(eff1$fit[1], eff1$fit[3]), type = "b", col = col2, pch = 16)
+lines(c(1, 1), c(eff1$upper[2], eff1$lower[2]), col = col1)
+lines(c(2, 2), c(eff1$upper[4], eff1$lower[4]), col = col1)
+lines(c(1.1, 1.1), c(eff1$upper[1], eff1$lower[1]), col = col2)
+lines(c(2.1, 2.1), c(eff1$upper[3], eff1$lower[3]), col = col2)
 axis(1, at = c(1.05, 2.05), labels = c("High", "Low"))
 dev.off()
 
@@ -269,5 +268,40 @@ segplot(scale ~ lower + upper, data = data_emp,
           panel.segplot(x,y,z,...)
           panel.abline(v=0,lty=2)
         })
+dev.off()
+
+
+# Analyse rated pain intensity
+# No rating scales to be used as covariates here
+
+# Build model
+lme10 <- lme(Intensity ~ Treatment*Stimulus + Wave, data = ratingsData, random = ~1|Subject, na.action = na.omit)
+
+plot(lme10)
+summary(lme10)
+intervals(lme10)
+
+# Make plots
+eff10 <- effect("Treatment*Stimulus", lme10)
+
+pdf("Fig_Unpleasantness5.pdf", width = 4, height = 4)
+plot(c(eff10$fit[2], eff10$fit[4]),
+     type = "b",
+     frame.plot = F,
+     ylab = "VAS",
+     xlab = "Shock intensity",
+     xaxt = "n",
+     xlim = c(1, 2.1),
+     ylim = c(0, 60),
+     col = col1,
+     main = "C. Rated pain intensity, Self"
+)
+lines(c(1.1, 2.1), c(eff10$fit[1], eff10$fit[3]), type = "b", col = col2, pch = 16)
+lines(c(1, 1), c(eff10$upper[2], eff10$lower[2]), col = col1)
+lines(c(2, 2), c(eff10$upper[4], eff10$lower[4]), col = col1)
+lines(c(1.1, 1.1), c(eff10$upper[1], eff10$lower[1]), col = col2)
+lines(c(2.1, 2.1), c(eff10$upper[3], eff10$lower[3]), col = col2)
+axis(1, at = c(1.05, 2.05), labels = c("High", "Low"))
+#legend("topright", col = c(col1, col2), pch = c(1, 16), legend = c("Placebo", "Oxazepam"), bty = "n", lty = 1)
 dev.off()
 
