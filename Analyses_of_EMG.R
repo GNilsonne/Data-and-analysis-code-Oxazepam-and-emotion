@@ -2,12 +2,12 @@
 # Gustav Nilsonne 2015-02-19
 
 # Require packages
-library(RCurl) # To read data from GitHub
+require(RCurl) # To read data from GitHub
 require(reshape2)
 require(RColorBrewer)
 require(nlme)
 require(effects)
-library(latticeExtra) # To make dotcharts
+require(latticeExtra) # To make dotcharts
 
 # Define colors for later
 col1 = brewer.pal(8, "Dark2")[1]
@@ -121,6 +121,8 @@ demDataURL <- getURL("https://raw.githubusercontent.com/GNilsonne/Data-and-analy
 demData <- read.csv(text = demDataURL)
 # Then the Acqknowledge logfiles containing EMG data
 IncludedSubjects <- demData$Subject[demData$Included_EP == T]
+Excluded <- c(36, 70) # These participants can be included in the experiment but not on the EMG measure, because they had facial tics.
+IncludedSubjects <- IncludedSubjects[!IncludedSubjects %in% Excluded]
 EMGDataList <- lapply(IncludedSubjects, FUN = fun_readEMGdata)
 
 # Move all data to one big frame
@@ -368,7 +370,7 @@ plot(c(eff1$fit[6], eff1$fit[8]),
      xaxt = "n",
      yaxt = "n",
      xlim = c(1, 2.1),
-     ylim = c(-8.7, -7.7),
+     ylim = c(-8.8, -7.7),
      col = col1,
      main = "E. Corrugator EMG, Self"
 )
@@ -379,7 +381,7 @@ lines(c(1.1, 1.1), c(eff1$upper[5], eff1$lower[5]), col = col2)
 lines(c(2.1, 2.1), c(eff1$upper[7], eff1$lower[7]), col = col2)
 axis(1, at = c(1.05, 2.05), labels = c("High", "Low"))
 axis(2, at = c(-8.7, -8.2, -7.7))
-legend("topright", col = c(col1, col2), pch = c(1, 16), legend = c("Placebo", "Oxazepam"), bty = "n")
+legend("topright", col = c(col1, col2), pch = c(1, 16), legend = c("Placebo", "Oxazepam"), lty = 1, bty = "n")
 dev.off()
 
 pdf("Fig_EMG6.pdf", width = 4, height = 4)
@@ -391,7 +393,7 @@ plot(c(eff1$fit[2], eff1$fit[4]),
      xaxt = "n",
      yaxt = "n",
      xlim = c(1, 2.1),
-     ylim = c(-8.7, -7.7),
+     ylim = c(-8.8, -7.7),
      col = col1,
      main = "F. Corrugator EMG, Other"
 )
