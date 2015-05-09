@@ -2,13 +2,13 @@
 # Gustav Nilsonne 2014-09-30
 
 # Require packages
-library(RCurl) # To read data from GitHub
+require(RCurl) # To read data from GitHub
 require(quantmod) # To find peaks for heartbeats
 require(reshape2)
 require(RColorBrewer)
 require(nlme)
 require(effects)
-library(latticeExtra) # To make dotcharts
+require(latticeExtra) # To make dotcharts
 
 # Define colors for later
 col1 = brewer.pal(8, "Dark2")[1]
@@ -128,6 +128,8 @@ demDataURL <- getURL("https://raw.githubusercontent.com/GNilsonne/Data-and-analy
 demData <- read.csv(text = demDataURL)
 # Then the Acqknowledge logfiles containing EMG data
 IncludedSubjects <- demData$Subject[demData$Included_EP == T & demData$Wave == 2] # Heart rate was only measured in wave 2
+Excluded <- c(60, 76, 78) # These participants can be included in the experiment but not on the EKG measure, because they had electrode disattachment or frequent extrasystoles.
+IncludedSubjects <- IncludedSubjects[!IncludedSubjects %in% Excluded]
 HeartRateDataList <- lapply(IncludedSubjects, FUN = fun_readEPdata)
 
 # Move all data to one big frame
@@ -231,9 +233,9 @@ MeanHRIndexOtherHigh <- aggregate(hr_index ~ time_s, data = subset(HeartRateData
 MeanHRIndexOtherLow <- aggregate(hr_index ~ time_s, data = subset(HeartRateData, Condition == "Other" & Stimulus == "Low"), mean)
 
 pdf("Fig_HR1.pdf", width = 4, height = 4)
-plot(MeanHRIndexSelfHigh, type = "n", col = col4, frame.plot = F, main = "A. Heart rate, Self", ylim = c(0.98, 1.16), xlab = "Time, s", ylab = "Heart rate, normalised ratio", xaxt = "n")
+plot(MeanHRIndexSelfHigh, type = "n", col = col4, frame.plot = F, main = "A. Heart rate, Self", ylim = c(0.95, 1.16), xlab = "Time, s", ylab = "Heart rate, normalised ratio", xaxt = "n")
 abline(v = c(0, 0.5), lty = 3)
-rect(2.5, 0, 5, 1.16, col = "gray88", border = NA)
+rect(2.5, 0, 4, 2, col = "gray88", border = NA)
 axis(1)
 lines(MeanHRIndexSelfHigh, col = col4, lwd = 2)
 lines(MeanHRIndexSelfLow, col = col7, lty = 5, lwd = 2)
@@ -241,21 +243,21 @@ legend("topright", lty = c(1, 5), lwd = 2, col = c(col4, col7), legend = c("High
 dev.off()
 
 pdf("Fig_HR2.pdf", width = 4, height = 4)
-plot(MeanHRIndexOtherHigh, type = "n", col = col4, frame.plot = F, main = "B. Heart rate, Other", ylim = c(0.98, 1.16), xlab = "Time, s", ylab = "Heart rate, normalised ratio", xaxt = "n")
+plot(MeanHRIndexOtherHigh, type = "n", col = col4, frame.plot = F, main = "B. Heart rate, Other", ylim = c(0.95, 1.16), xlab = "Time, s", ylab = "Heart rate, normalised ratio", xaxt = "n")
 abline(v = c(0, 0.5), lty = 3)
-rect(2.5, 0, 5, 1.16, col = "gray88", border = NA)
+rect(2.5, 0, 4, 2, col = "gray88", border = NA)
 axis(1)
 lines(MeanHRIndexOtherHigh, col = col4, lwd = 2)
 lines(MeanHRIndexOtherLow, col = col7, lty = 5, lwd = 2)
 dev.off()
 
-# Average data over 2.5-5 second interval for each event for statistical modelling
+# Average data over 2.5-4 second interval for each event for statistical modelling
 HeartRateEventData <- data.frame()
 for(i in unique(HeartRateData$subject)){
   for(j in unique(HeartRateData$event_no[HeartRateData$subject == i])){
     for(k in c("Self", "Other")){
       for(l in c("High", "Low")){
-        hr_mean <- mean(HeartRateData$hr_index[HeartRateData$subject == i & HeartRateData$event_no == j & HeartRateData$Condition == k & HeartRateData$Stimulus == l][45:70])
+        hr_mean <- mean(HeartRateData$hr_index[HeartRateData$subject == i & HeartRateData$event_no == j & HeartRateData$Condition == k & HeartRateData$Stimulus == l][45:60])
         HeartRateEventData <- rbind(HeartRateEventData, data.frame(i, j, k, l, hr_mean))
       }
     }
@@ -312,7 +314,7 @@ lines(c(1.1, 1.1), c(eff1$upper[5], eff1$lower[5]), col = col2)
 lines(c(2.1, 2.1), c(eff1$upper[7], eff1$lower[7]), col = col2)
 axis(1, at = c(1.05, 2.05), labels = c("High", "Low"))
 axis(2, at = c(1, 1.05, 1.1))
-legend("topright", col = c(col1, col2), pch = c(1, 16), legend = c("Placebo", "Oxazepam"), bty = "n")
+legend("topright", col = c(col1, col2), pch = c(1, 16), legend = c("Placebo", "Oxazepam"), lty = 1, bty = "n")
 dev.off()
 
 pdf("Fig_HR4.pdf", width = 4, height = 4)
