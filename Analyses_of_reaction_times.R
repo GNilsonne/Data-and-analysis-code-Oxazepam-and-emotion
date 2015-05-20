@@ -39,7 +39,7 @@ intervals(lme1)
 eff1 <- effect("Treatment * FirstOrSecondTest", lme1)
 
 pdf("Fig_RT.pdf", width = 4, height = 4)
-plot(1/eff1$fit[c(1, 3)],
+plot(1/eff1$fit[c(2, 4)],
      frame.plot = F,
      xaxt = "n",
      yaxt = "n",
@@ -47,16 +47,16 @@ plot(1/eff1$fit[c(1, 3)],
      xlab = "",
      ylab = "ms",
      xlim = c(1, 2.1),
-     ylim = c(300, 350),
-     pch = 16,
-     col = col2,
+     ylim = c(275, 320),
+     pch = 1,
+     col = col1,
      main = "A. Reaction times")
-lines(c(1.1,2.1), 1/eff1$fit[c(2, 4)], type = "b", col = col1, pch = 1)
-lines(c(1, 1), c((1/eff1$upper[1]), (1/eff1$lower[1])), col = col2)
-lines(c(2, 2), c((1/eff1$upper[3]), (1/eff1$lower[3])), col = col2)
-lines(c(1.1, 1.1), c((1/eff1$upper[2]), (1/eff1$lower[2])), col = col1)
-lines(c(2.1, 2.1), c((1/eff1$upper[4]), (1/eff1$lower[4])), col = col1)
+lines(c(1.1,2.1), 1/eff1$fit[c(1, 3)], type = "b", col = col2, pch = 16)
+lines(c(1, 1), c((1/eff1$upper[2]), (1/eff1$lower[2])), col = col1)
+lines(c(2, 2), c((1/eff1$upper[4]), (1/eff1$lower[4])), col = col1)
+lines(c(1.1, 1.1), c((1/eff1$upper[1]), (1/eff1$lower[1])), col = col2)
+lines(c(2.1, 2.1), c((1/eff1$upper[3]), (1/eff1$lower[3])), col = col2)
 axis(1, labels = c("Before", "After"), at = c(1.05, 2.05))
-axis(2, at = c(300, 350))
-legend("topleft", col = c(col1, col2), pch = c(1, 16), legend = c("Placebo", "Oxazepam"), bty = "n")
+axis(2, at = c(280, 300, 320))
+legend("topleft", col = c(col1, col2), pch = c(1, 16), legend = c("Placebo", "Oxazepam"), bty = "n", lwd = 1)
 dev.off()
