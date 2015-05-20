@@ -144,6 +144,13 @@ sd(demData$PPI_1_C_R[demData$Wave == 2 & demData$Included_EP == 1 & demData$Trea
 mean(demData$PPI_1_C_R[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
 sd(demData$PPI_1_C_R[demData$Wave == 2 & demData$Included_EP == 1 & demData$Treatment == "Oxazepam"], na.rm = T)
 
+# IRI, test-retest
+demData$IRIdiff <- demData$IRI_retest_EC - demData$IRI_EC
+mean(demData$IRIdiff[demData$Included_EP == TRUE], na.rm = T)
+sd(demData$IRIdiff[demData$Included_EP == TRUE], na.rm = T)
+
+demData$IRIdiff2 <- demData$IRI_scrambled_EC - demData$IRI_EC
+t.test(IRIdiff2 ~ Treatment, data = demData[demData$Included_EP == TRUE, ])
 
 # Analyse effect of oxazepam on rated state anxiety
 # Make dataframe for mixed-effects model
