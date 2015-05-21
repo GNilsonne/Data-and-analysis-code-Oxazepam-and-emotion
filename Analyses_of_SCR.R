@@ -1,5 +1,5 @@
-# Script to analyse ratings of unpleasantness in empathy experiment from the oxazepam and emotion project
-# Gustav Nilsonne 2015-02-01
+# Script to analyse ratings skin conductance responses in empathy experiment from the oxazepam and emotion project
+# Gustav Nilsonne 2015-05-20
 
 # Require packages
 library(RCurl) # To read data from GitHub
@@ -40,9 +40,6 @@ hist(SCRData$SCR)
 SCRData$sqrtSCR <- sqrt(SCRData$SCR)
 hist(SCRData$sqrtSCR)
 
-# Count participants with too high score on PPI-R Inconsistent Responding measure
-unique(SCRData$Subject[SCRData$PPI_1_IR >= 45])
-
 # Analyse data
 # Include IRI-EC terms in model since we wish to control for baseline empathic propensity 
 
@@ -74,15 +71,16 @@ pdf("Fig_SCR1.pdf", width = 4, height = 4)
 plot(c(eff1$fit[6], eff1$fit[8]),
      type = "b",
      frame.plot = F,
-     ylab = expression(sqrt(Amplitude)),
+     ylab = "",
      xlab = "Shock intensity",
      xaxt = "n",
      yaxt = "n",
      xlim = c(1, 2.1),
      ylim = c(0.05, 0.35),
      col = col1,
-     main = "C. Skin conductance responses, Self"
+     main = "A. Skin conductance responses, Self"
      )
+mtext(expression(sqrt(Amplitude)), side = 2, las = 3, line = 2.5)
 lines(c(1.1, 2.1), c(eff1$fit[5], eff1$fit[7]), type = "b", col = col2, pch = 16)
 lines(c(1, 1), c(eff1$upper[6], eff1$lower[6]), col = col1)
 lines(c(2, 2), c(eff1$upper[8], eff1$lower[8]), col = col1)
@@ -90,22 +88,23 @@ lines(c(1.1, 1.1), c(eff1$upper[5], eff1$lower[5]), col = col2)
 lines(c(2.1, 2.1), c(eff1$upper[7], eff1$lower[7]), col = col2)
 axis(1, at = c(1.05, 2.05), labels = c("High", "Low"))
 axis(2, at = c(0.05, 0.15, 0.25, 0.35))
-#legend("topright", col = c(col1, col2), pch = c(1, 16), legend = c("Placebo", "Oxazepam"), bty = "n")
+legend("topright", col = c(col1, col2), pch = c(1, 16), legend = c("Placebo", "Oxazepam"), bty = "n", lty = 1)
 dev.off()
 
 pdf("Fig_SCR2.pdf", width = 4, height = 4)
 plot(c(eff1$fit[2], eff1$fit[4]),
      type = "b",
      frame.plot = F,
-     ylab = expression(sqrt(Amplitude)),
+     ylab = "",
      xlab = "Shock intensity",
      xaxt = "n",
      yaxt = "n",
      xlim = c(1, 2.1),
      ylim = c(0.05, 0.35),
      col = col1,
-     main = "D. Skin conductance responses, Other"
+     main = "B. Skin conductance responses, Other"
      )
+mtext(expression(sqrt(Amplitude)), side = 2, las = 3, line = 2.5)
 lines(c(1.1, 2.1), c(eff1$fit[1], eff1$fit[3]), type = "b", col = col2, pch = 16)
 lines(c(1, 1), c(eff1$upper[2], eff1$lower[2]), col = col1)
 lines(c(2, 2), c(eff1$upper[4], eff1$lower[4]), col = col1)
@@ -290,81 +289,61 @@ dev.off()
 data_main2 <- data_main[4:9, ]
 data_main2 <- data_main2[rev(rownames(data_main2)),]
 
-pdf("Fig_SCR5.pdf", width = 6, height = 3)
+pdf("Fig_SCR5.pdf", width = 6, height = 3.2)
 par(mar=c(5.1, 5, 4, 14))
-plot(x = data_main2$beta, y = c(7:4, 2.5, 1), xlab = expression(beta), ylab = "", frame.plot = F, xlim = c(min(data_main2$lower), max(data_main2$upper)), xaxt = "n", yaxt = "n")
+plot(x = data_main2$beta, y = c(8:5, 3, 1), xlab = expression(beta), ylab = "", frame.plot = F, xlim = c(min(data_main2$lower), max(data_main2$upper)), xaxt = "n", yaxt = "n")
 title("B. Skin Conductance Responses", line = 2)
 axis(1, at = c(-0.02, 0, 0.02), labels = c(-0.02, 0, 0.02))
 abline(v = 0, col = "gray")
-points(x = data_main2$beta, y = c(7:4, 2.5, 1), pch = 16)
-arrows(data_main2$lower, c(7:4, 2.5, 1), data_main2$upper, c(7:4, 2.5, 1), length = 0, lwd = 1.5)
+points(x = data_main2$beta, y = c(8:5, 3, 1), pch = 16)
+arrows(data_main2$lower, c(8:5, 3, 1), data_main2$upper, c(8:5, 3, 1), length = 0, lwd = 1.5)
 par(las=1)
-mtext(side = 2, at = c(7:4, 2.5, 1), text = c("IRI-EC", " IRI-PT", "IRI-PD", "IRI-F", "STAI-T", "TAS-20"), line = 1)
-mtext(side = 4, at = 8, text = expression(beta), line = 1)
-mtext(side = 4, at = c(7:4, 2.5, 1), text = round(data_main2$beta, 2), line = 1)
-mtext(side = 4, at = 8, text = "95 % CI", line = 4)
+mtext(side = 2, at = c(8:5, 3, 1), text = c("IRI-EC", " IRI-PT", "IRI-PD", "IRI-F", "STAI-T", "TAS-20"), line = 1)
+mtext(side = 4, at = 9, text = expression(beta), line = 1)
+mtext(side = 4, at = c(8:5, 3, 1), text = round(data_main2$beta, 2), line = 1)
+mtext(side = 4, at = 9, text = "95 % CI", line = 4)
 CI <- paste("[", round(data_main2$lower, 2), ", ", round(data_main2$upper, 2), "]", sep = "")
-mtext(side = 4, at = c(7:4, 2.5, 1), text = CI, line = 4)
-mtext(side = 4, at = 8, text = expression(italic(p)), line = 10)
-mtext(side = 4, at = c(7:4, 2.5, 1), text = data_main2$p, line = 10)
+mtext(side = 4, at = c(8:5, 3, 1), text = CI, line = 4)
+mtext(side = 4, at = 9, text = expression(italic(p)), line = 10)
+mtext(side = 4, at = c(8:5, 3, 1), text = data_main2$p, line = 10)
 dev.off()
 
 
 data_emp2 <- data_emp[4:9, ]
 data_emp2 <- data_emp2[rev(rownames(data_emp2)),]
 
-pdf("Fig_SCR6.pdf", width = 6, height = 3)
+pdf("Fig_SCR6.pdf", width = 6, height = 3.2)
 par(mar=c(5.1, 5, 4, 14))
-plot(x = data_emp2$beta, y = c(7:4, 2.5, 1), xlab = expression(beta), ylab = "", frame.plot = F, xlim = c(min(data_emp2$lower), max(data_emp2$upper)), xaxt = "n", yaxt = "n")
+plot(x = data_emp2$beta, y = c(8:5, 3, 1), xlab = expression(beta), ylab = "", frame.plot = F, xlim = c(min(data_emp2$lower), max(data_emp2$upper)), xaxt = "n", yaxt = "n")
 title("B. Skin Conductance Responses", line = 2)
 axis(1, at = c(-0.03, 0, 0.03), labels = c(-0.03, 0, 0.03))
 abline(v = 0, col = "gray")
-points(x = data_emp2$beta, y = c(7:4, 2.5, 1), pch = 16)
-arrows(data_emp2$lower, c(7:4, 2.5, 1), data_emp2$upper, c(7:4, 2.5, 1), length = 0, lwd = 1.5)
+points(x = data_emp2$beta, y = c(8:5, 3, 1), pch = 16)
+arrows(data_emp2$lower, c(8:5, 3, 1), data_emp2$upper, c(8:5, 3, 1), length = 0, lwd = 1.5)
 par(las=1)
-mtext(side = 2, at = c(7:4, 2.5, 1), text = c("IRI-EC", " IRI-PT", "IRI-PD", "IRI-F", "STAI-T", "TAS-20"), line = 1)
-mtext(side = 4, at = 8, text = expression(beta), line = 1)
-mtext(side = 4, at = c(7:4, 2.5, 1), text = round(data_emp2$beta, 2), line = 1)
-mtext(side = 4, at = 8, text = "95 % CI", line = 4)
+mtext(side = 2, at = c(8:5, 3, 1), text = c("IRI-EC", " IRI-PT", "IRI-PD", "IRI-F", "STAI-T", "TAS-20"), line = 1)
+mtext(side = 4, at = 9, text = expression(beta), line = 1)
+mtext(side = 4, at = c(8:5, 3, 1), text = round(data_emp2$beta, 2), line = 1)
+mtext(side = 4, at = 9, text = "95 % CI", line = 4)
 CI <- paste("[", round(data_emp2$lower, 2), ", ", round(data_emp2$upper, 2), "]", sep = "")
-mtext(side = 4, at = c(7:4, 2.5, 1), text = CI, line = 4)
-mtext(side = 4, at = 8, text = expression(italic(p)), line = 10)
-mtext(side = 4, at = c(7:4, 2.5, 1), text = data_emp2$p, line = 10)
+mtext(side = 4, at = c(8:5, 3, 1), text = CI, line = 4)
+mtext(side = 4, at = 9, text = expression(italic(p)), line = 10)
+mtext(side = 4, at = c(8:5, 3, 1), text = data_emp2$p, line = 10)
 dev.off()
 
 
+# Analyse waves 1 and 2 separately
+summary(lme1)
+write.csv(summary(lme1)$tTable, file = "Result_tables/SCR_Waves1and2.csv")
 
+lmew1 <- lme(sqrtSCR ~ Treatment*Stimulus*Condition + IRI_EC_z + IRI_EC_z_OtherHigh, data = SCRData[SCRData$Wave == 1, ], random = ~1|Subject, na.action = na.omit)
+plot(lmew1)
+summary(lmew1)
+intervals(lmew1)
+write.csv(summary(lmew1)$tTable, file = "Result_tables/SCR_Wave1.csv")
 
-
-# Old attempt at plotting, did not work very well
-par(bty = 'n') 
-dotchart(data_main$beta, 
-         labels = data_main$scale, 
-         #groups = data_main$groups, 
-         xlim = c(-0.03, 0.03),
-         main = "X. SCR, predictors across conditions", 
-         xlab = "Beta, 95% CI",
-         color = NULL,
-         lcolor = NULL,
-         cex = 0.8)
-abline(v = 0, lty = 2)
-
-lines(c(data_main$lower[1], data_main$upper[1]), c(1, 1), col = col8)
-lines(c(data_main$lower[2], data_main$upper[2]), c(2, 2), col = col8)
-lines(c(data_main$lower[3], data_main$upper[3]), c(3, 3), col = col8)
-lines(c(data_main$lower[4], data_main$upper[4]), c(4, 4), col = col7)
-lines(c(data_main$lower[5], data_main$upper[5]), c(5, 5), col = col6)
-lines(c(data_main$lower[6], data_main$upper[6]), c(6, 6), col = col5)
-lines(c(data_main$lower[7], data_main$upper[7]), c(7, 7), col = col5)
-lines(c(data_main$lower[8], data_main$upper[8]), c(8, 8), col = col5)
-lines(c(data_main$lower[9], data_main$upper[9]), c(9, 9), col = col5)
-
-points(data_main$beta[1], 1, col = col8, pch = 16)
-points(data_main$beta[2], 2, col = col8, pch = 16)
-points(data_main$beta[3], 3, col = col8, pch = 16)
-points(data_main$beta[4], 4, col = col7, pch = 16)
-points(data_main$beta[5], 5, col = col6, pch = 16)
-points(data_main$beta[6], 6, col = col5, pch = 16)
-points(data_main$beta[7], 7, col = col5, pch = 16)
-points(data_main$beta[8], 8, col = col5, pch = 16)
-points(data_main$beta[9], 9, col = col5, pch = 16)
+lmew2 <- lme(sqrtSCR ~ Treatment*Stimulus*Condition + IRI_EC_z + IRI_EC_z_OtherHigh, data = SCRData[SCRData$Wave == 2, ], random = ~1|Subject, na.action = na.omit)
+plot(lmew2)
+summary(lmew2)
+intervals(lmew2)
+write.csv(summary(lmew2)$tTable, file = "Result_tables/SCR_Wave2.csv")
