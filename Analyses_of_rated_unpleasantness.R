@@ -1,5 +1,5 @@
 # Script to analyse ratings of unpleasantness in empathy experiment from the oxazepam and emotion project
-# Gustav Nilsonne 2015-02-01
+# Gustav Nilsonne 2015-05-20
 
 # Require packages
 library(RCurl) # To read data from GitHub
@@ -352,7 +352,7 @@ mtext(side = 4, at = 9, text = expression(italic(p)), line = 10)
 mtext(side = 4, at = c(8:5, 3, 1), text = data_emp2$p, line = 10)
 dev.off()
 
-# Make analyses for waves 1 and 2 separately
+# Analyse waves 1 and 2 separately
 summary(lme1)
 write.csv(summary(lme1)$tTable, file = "Result_tables/Rated_unpleasantness_Waves1and2.csv")
 
