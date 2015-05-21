@@ -1,5 +1,5 @@
 # Script to analyse EMG in the EP experiment of the Oxazepam project 2011
-# Gustav Nilsonne 2015-02-19
+# Gustav Nilsonne 2015-05-21
 
 # Require packages
 require(RCurl) # To read data from GitHub
@@ -235,18 +235,18 @@ abline(v = c(0, 0.5), lty = 2)
 
 # Make figures
 pdf("Fig_EMG1.pdf", width = 4, height = 4)
-plot(MeanEMGSelfHighWave1, type = "n", col = col4, frame.plot = F, main = "A. Corrugator EMG, Self, Wave 1", ylim = c(0.0002, 0.0011), xlab = "Time (s)", ylab = "EMG (µSiemens?)", xaxt = "n", yaxt = "n")
+plot(MeanEMGSelfHighWave1, type = "n", col = col4, frame.plot = F, main = "A. Corrugator EMG, Self, Wave 1", ylim = c(0.0002, 0.0011), xlab = "Time (s)", ylab = "EMG (mV)", xaxt = "n", yaxt = "n")
 rect(3, 0.000001, 5, 1, col = "gray88", border = NA)
 abline(v = c(0, 3, 4), lty = 3)
 axis(1)
 axis(2, at = c(0.0002, 0.001))
 lines(MeanEMGSelfHighWave1, col = col4, lwd = 2)
 lines(MeanEMGSelfLowWave1, col = col7, lty = 5, lwd = 2)
-legend("topleft", lty = c(1, 5), lwd = 2, col = c(col4, col7), legend = c("High", "Low"), bg = "white")
+legend("topleft", lty = c(1, 5), lwd = 2, col = c(col4, col7), legend = c("High shock", "Low shock"), bg = "white", cex = 0.8)
 dev.off()
 
 pdf("Fig_EMG2.pdf", width = 4, height = 4)
-plot(MeanEMGOtherHighWave1, type = "n", col = col4, frame.plot = F, main = "B. Corrugator EMG, Other, Wave 1", ylim = c(0.0002, 0.0011), xlab = "Time (s)", ylab = "EMG (µSiemens?)", xaxt = "n", yaxt = "n")
+plot(MeanEMGOtherHighWave1, type = "n", col = col4, frame.plot = F, main = "B. Corrugator EMG, Other, Wave 1", ylim = c(0.0002, 0.0011), xlab = "Time (s)", ylab = "EMG (mV)", xaxt = "n", yaxt = "n")
 rect(3, 0.000001, 5, 1, col = "gray88", border = NA)
 abline(v = c(0, 3, 4), lty = 3)
 axis(1)
@@ -256,7 +256,7 @@ lines(MeanEMGOtherLowWave1, col = col7, lty = 5, lwd = 2)
 dev.off()
 
 pdf("Fig_EMG3.pdf", width = 4, height = 4)
-plot(MeanEMGSelfHighWave2, type = "n", col = col4, frame.plot = F, main = "C. Corrugator EMG, Self, Wave 2", ylim = c(0.0002, 0.0011), xlab = "Time (s)", ylab = "EMG (µSiemens?)", xaxt = "n", yaxt = "n")
+plot(MeanEMGSelfHighWave2, type = "n", col = col4, frame.plot = F, main = "C. Corrugator EMG, Self, Wave 2", ylim = c(0.0002, 0.0011), xlab = "Time (s)", ylab = "EMG (mV)", xaxt = "n", yaxt = "n")
 rect(0, 0.000001, 2, 1, col = "gray88", border = NA)
 abline(v = c(0, 0.5), lty = 3)
 axis(1)
@@ -266,7 +266,7 @@ lines(MeanEMGSelfLowWave2, col = col7, lty = 5, lwd = 2)
 dev.off()
 
 pdf("Fig_EMG4.pdf", width = 4, height = 4)
-plot(MeanEMGOtherHighWave2, type = "n", col = col4, frame.plot = F, main = "D. Corrugator EMG, Other, Wave 2", ylim = c(0.0002, 0.0011), xlab = "Time (s)", ylab = "EMG (µSiemens?)", xaxt = "n", yaxt = "n")
+plot(MeanEMGOtherHighWave2, type = "n", col = col4, frame.plot = F, main = "D. Corrugator EMG, Other, Wave 2", ylim = c(0.0002, 0.0011), xlab = "Time (s)", ylab = "EMG (mV)", xaxt = "n", yaxt = "n")
 rect(0, 0.000001, 2, 1, col = "gray88", border = NA)
 abline(v = c(0, 0.5), lty = 3)
 axis(1)
@@ -581,44 +581,61 @@ data_emp <- rbind(data_emp, data.frame(scale = "IRI-EC", beta = intervals(lme1)$
 data_main2 <- data_main[4:9, ]
 data_main2 <- data_main2[rev(rownames(data_main2)),]
 
-pdf("Fig_EMG10.pdf", width = 6, height = 3)
+pdf("Fig_EMG10.pdf", width = 6, height = 3.2)
 par(mar=c(5.1, 5, 4, 14))
-plot(x = data_main2$beta, y = c(7:4, 2.5, 1), xlab = expression(beta), ylab = "", frame.plot = F, xlim = c(min(data_main2$lower), max(data_main2$upper)), xaxt = "n", yaxt = "n")
+plot(x = data_main2$beta, y = c(8:5, 3, 1), xlab = expression(beta), ylab = "", frame.plot = F, xlim = c(min(data_main2$lower), max(data_main2$upper)), xaxt = "n", yaxt = "n")
 title("D. Corrugator EMG", line = 2)
 abline(v = 0, col = "gray")
 axis(1, at = c(-0.2, 0, 0.2), labels = c(-0.2, 0, 0.2))
-points(x = data_main2$beta, y = c(7:4, 2.5, 1), pch = 16)
-arrows(data_main2$lower, c(7:4, 2.5, 1), data_main2$upper, c(7:4, 2.5, 1), length = 0, lwd = 1.5)
+points(x = data_main2$beta, y = c(8:5, 3, 1), pch = 16)
+arrows(data_main2$lower, c(8:5, 3, 1), data_main2$upper, c(8:5, 3, 1), length = 0, lwd = 1.5)
 par(las=1)
-mtext(side = 2, at = c(7:4, 2.5, 1), text = c("IRI-EC", " IRI-PT", "IRI-PD", "IRI-F", "STAI-T", "TAS-20"), line = 1)
-mtext(side = 4, at = 8, text = expression(beta), line = 1)
-mtext(side = 4, at = c(7:4, 2.5, 1), text = round(data_main2$beta, 2), line = 1)
-mtext(side = 4, at = 8, text = "95 % CI", line = 4)
+mtext(side = 2, at = c(8:5, 3, 1), text = c("IRI-EC", " IRI-PT", "IRI-PD", "IRI-F", "STAI-T", "TAS-20"), line = 1)
+mtext(side = 4, at = 9, text = expression(beta), line = 1)
+mtext(side = 4, at = c(8:5, 3, 1), text = round(data_main2$beta, 2), line = 1)
+mtext(side = 4, at = 9, text = "95 % CI", line = 4)
 CI <- paste("[", round(data_main2$lower, 2), ", ", round(data_main2$upper, 2), "]", sep = "")
-mtext(side = 4, at = c(7:4, 2.5, 1), text = CI, line = 4)
-mtext(side = 4, at = 8, text = expression(italic(p)), line = 10)
-mtext(side = 4, at = c(7:4, 2.5, 1), text = data_main2$p, line = 10)
+mtext(side = 4, at = c(8:5, 3, 1), text = CI, line = 4)
+mtext(side = 4, at = 9, text = expression(italic(p)), line = 10)
+mtext(side = 4, at = c(8:5, 3, 1), text = data_main2$p, line = 10)
 dev.off()
 
 
 data_emp2 <- data_emp[4:9, ]
 data_emp2 <- data_emp2[rev(rownames(data_emp2)),]
   
-pdf("Fig_EMG11.pdf", width = 6, height = 3)
+pdf("Fig_EMG11.pdf", width = 6, height = 3.2)
 par(mar=c(5.1, 5, 4, 14))
-plot(x = data_emp2$beta, y = c(7:4, 2.5, 1), xlab = expression(beta), ylab = "", frame.plot = F, xlim = c(min(data_emp2$lower), max(data_emp2$upper)), xaxt = "n", yaxt = "n")
+plot(x = data_emp2$beta, y = c(8:5, 3, 1), xlab = expression(beta), ylab = "", frame.plot = F, xlim = c(min(data_emp2$lower), max(data_emp2$upper)), xaxt = "n", yaxt = "n")
 title("D. Corrugator EMG", line = 2)
 abline(v = 0, col = "gray")
 axis(1, at = c(-0.1, 0, 0.1), labels = c(-0.1, 0, 0.1))
-points(x = data_emp2$beta, y = c(7:4, 2.5, 1), pch = 16)
-arrows(data_emp2$lower, c(7:4, 2.5, 1), data_emp2$upper, c(7:4, 2.5, 1), length = 0, lwd = 1.5)
+points(x = data_emp2$beta, y = c(8:5, 3, 1), pch = 16)
+arrows(data_emp2$lower, c(8:5, 3, 1), data_emp2$upper, c(8:5, 3, 1), length = 0, lwd = 1.5)
 par(las=1)
-mtext(side = 2, at = c(7:4, 2.5, 1), text = c("IRI-EC", " IRI-PT", "IRI-PD", "IRI-F", "STAI-T", "TAS-20"), line = 1)
-mtext(side = 4, at = 8, text = expression(beta), line = 1)
-mtext(side = 4, at = c(7:4, 2.5, 1), text = round(data_emp2$beta, 2), line = 1)
-mtext(side = 4, at = 8, text = "95 % CI", line = 4)
+mtext(side = 2, at = c(8:5, 3, 1), text = c("IRI-EC", " IRI-PT", "IRI-PD", "IRI-F", "STAI-T", "TAS-20"), line = 1)
+mtext(side = 4, at = 9, text = expression(beta), line = 1)
+mtext(side = 4, at = c(8:5, 3, 1), text = round(data_emp2$beta, 2), line = 1)
+mtext(side = 4, at = 9, text = "95 % CI", line = 4)
 CI <- paste("[", round(data_emp2$lower, 2), ", ", round(data_emp2$upper, 2), "]", sep = "")
-mtext(side = 4, at = c(7:4, 2.5, 1), text = CI, line = 4)
-mtext(side = 4, at = 8, text = expression(italic(p)), line = 10)
-mtext(side = 4, at = c(7:4, 2.5, 1), text = data_emp2$p, line = 10)
+mtext(side = 4, at = c(8:5, 3, 1), text = CI, line = 4)
+mtext(side = 4, at = 9, text = expression(italic(p)), line = 10)
+mtext(side = 4, at = c(8:5, 3, 1), text = data_emp2$p, line = 10)
 dev.off()
+
+
+# Analyse waves 1 and 2 separately
+summary(lme1)
+write.csv(summary(lme1)$tTable, file = "Result_tables/EMG_Waves1and2.csv")
+
+lmew1 <- lme(EMG_corr_mean ~ Treatment*Stimulus*Condition + IRI_EC_z + IRI_EC_z_OtherHigh, data = EMGEventData[EMGEventData$Wave == 1, ], random = ~1|Subject, na.action = na.omit)
+plot(lmew1)
+summary(lmew1)
+intervals(lmew1)
+write.csv(summary(lmew1)$tTable, file = "Result_tables/EMG_Wave1.csv")
+
+lmew2 <- lme(EMG_corr_mean ~ Treatment*Stimulus*Condition + IRI_EC_z + IRI_EC_z_OtherHigh, data = EMGEventData[EMGEventData$Wave == 2, ], random = ~1|Subject, na.action = na.omit)
+plot(lmew2)
+summary(lmew2)
+intervals(lmew2)
+write.csv(summary(lmew2)$tTable, file = "Result_tables/EMG_Wave2.csv")
