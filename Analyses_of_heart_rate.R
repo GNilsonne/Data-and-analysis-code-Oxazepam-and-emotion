@@ -1,5 +1,5 @@
 # Script to analyse heart rate in the EP experiment of the Oxazepam project 2011
-# Gustav Nilsonne 2014-09-30
+# Gustav Nilsonne 2015-05-21
 
 # Require packages
 require(RCurl) # To read data from GitHub
