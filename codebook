@@ -37,6 +37,7 @@ This file contains the following data:
   PPI_1_SCI_R	- Psychopathy Personality Inventory-Revised, Self-Centered Impulsiveness factor
   PPI_1_FD_R - Psychopathy Personality Inventory-Revised, Fearless Dominance factor
   PPI_1_IR - Psychopathy Personality Inventory-Revised, Inconsistent Responding subscale
+  RatedSympathy - Participants' ratings of how sympathetic the confederate was, on a scale 1-10
 Age and educational background were not included in order to preserve anonymity.
 
 2. Physiological recordings (files in EP folder)
