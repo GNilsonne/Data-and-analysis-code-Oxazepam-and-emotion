@@ -1,0 +1,108 @@
+This is a codebook for the different data files in this repository.
+
+1. demographics.csv
+This file contains the following data:
+  Subject	- Unique participant ID
+  Treatment	- Oxazepam or placebo group
+  Wave - 0 are pilot participants, 1 is wave 1, and 2 is wave 2
+  Included_EP	- Whether participants have been included in the empathy for pain experiment
+  Included_FMOV	- Whether participants have been included in the emotional contagion experiment
+  Included_atleastone	- Whether participants have been included in either of the above
+  VAS10_before - Volts required to reach VAS 10 in pain threshold titration before the experiment
+  VAS10_after	- Volts required to reach VAS 10 in pain threshold titration after the experiment
+  VAS80_before	- Volts required to reach VAS 80 in pain threshold titration before the experiment
+  VAS80_after	- Volts required to reach VAS 80 in pain threshold titration after the experiment
+  Guessed.group	- Participants' guesses after the experiment as to which arm they were in. 5-point Likert-type scale with responses given as text strings.
+  IRI_EC - Interpersonal Reactivity Index, Empathic Concern subscale
+  IRI_PT - Interpersonal Reactivity Index, Perspective Taking subscale
+  IRI_PD - Interpersonal Reactivity Index, Personal Distress subscale
+  IRI_F	- Interpersonal Reactivity Index, Fantasy subscale
+  IRI_scrambled_EC - Interpersonal Reactivity Index, Empathic Concern subscale, administered with items in scrambled order at end of experiment (wave 2 only)
+  IRI_scrambled_PT - Interpersonal Reactivity Index, Perspective Taking subscale, administered with items in scrambled order at end of experiment (wave 2 only)
+  IRI_scrambled_PD - Interpersonal Reactivity Index, Personal Distress subscale, administered with items in scrambled order at end of experiment (wave 2 only)
+  IRI_scrambled_F - Interpersonal Reactivity Index, Fantasy subscale, administered with items in scrambled order at end of experiment (wave 2 only)
+  IRI_retest_EC	- Interpersonal Reactivity Index, Empathic Concern subscale, administered by mail after experiment (wave 1 only)
+  IRI_retest_PT	- Interpersonal Reactivity Index, Perspective Taking subscale, administered by mail after experiment (wave 1 only)
+  IRI_retest_PD - Interpersonal Reactivity Index, Personal Distress subscale, administered by mail after experiment (wave 1 only)
+  IRI_retest_F - Interpersonal Reactivity Index, Fantasy subscale, administered by mail after experiment (wave 1 only)
+  Dagar.till.retest	- Test-retest interval for scales administered by mail, in days
+  TAS.20 - Toronto Alexithymia Scale-20 total score
+  Difficulty.identifying.feelings	- Toronto Alexithymia Scale-20 DIF subscale
+  Difficulty.describing.feelings - Toronto Alexithymia Scale-20 DDF subscale
+  Externally.oriented.thinking - Toronto Alexithymia Scale-20 EOT subscale
+  STAI.T - State-Trait Anxiety Inventory-Trait
+  STAI.S - State-Trait Anxiety Inventory-State
+  STAI.S.Scrambled - State-Trait Anxiety Inventory-State, administered at the end of the experiment with questions in scrambled order
+  PPI_1_C_R	- Psychopathy Personality Inventory-Revised, Coldheartedness factor/subscale
+  PPI_1_SCI_R	- Psychopathy Personality Inventory-Revised, Self-Centered Impulsiveness factor
+  PPI_1_FD_R - Psychopathy Personality Inventory-Revised, Fearless Dominance factor
+  PPI_1_IR - Psychopathy Personality Inventory-Revised, Inconsistent Responding subscale
+Age and educational background were not included in order to preserve anonymity.
+
+2. Physiological recordings (files in EP folder)
+These files contain recordings made using the Acqknowledge software and exported to text files. They have different numbers of columns depending on when in the experiment they were 
+Files that have 12 columns have the following data in each column:
+  Skin conductance, umho
+  Raw EMG of the major zygomatic muscle, mV
+  Raw EMG of the superciliary corrugator muscle, mV
+  Rating (channel not used, can be disregarded)
+  Average rectified EMG of the superciliary corrugator muscle, mV
+  Reference wave for shock stimulus
+  Reference wave for image stimulus onset, shock
+  Reference wave for image stimulus onset, anticipation to self high condition
+  Reference wave for image stimulus onset, anticipation to self low condition
+  Reference wave for image stimulus onset, anticipation to other high condition
+  Reference wave for image stimulus onset, anticipation to other low condition
+  Reference wave for null event
+Files that have 13 columns have the following data in each column:
+  Time (minutes)
+  Skin conductance, umho
+  Raw EMG of the major zygomatic muscle, mV
+  Raw EMG of the superciliary corrugator muscle, mV
+  Rating (channel not used, can be disregarded)
+  Average rectified EMG of the superciliary corrugator muscle, mV
+  Reference wave for shock stimulus
+  Reference wave for image stimulus onset, shock
+  Reference wave for image stimulus onset, anticipation to self high condition
+  Reference wave for image stimulus onset, anticipation to self low condition
+  Reference wave for image stimulus onset, anticipation to other high condition
+  Reference wave for image stimulus onset, anticipation to other low condition
+  Reference wave for null event
+Files that have 14 columns have the following data in each column:
+  Time (minutes)
+  Skin conductance, umho
+  Raw EMG of the major zygomatic muscle, mV
+  Raw EMG of the superciliary corrugator muscle, mV
+  Rating (channel not used, can be disregarded)
+  EKG (mV)
+  Average rectified EMG of the superciliary corrugator muscle, mV
+  Reference wave for shock stimulus
+  Reference wave for image stimulus onset, shock
+  Reference wave for image stimulus onset, anticipation to self high condition
+  Reference wave for image stimulus onset, anticipation to self low condition
+  Reference wave for image stimulus onset, anticipation to other high condition
+  Reference wave for image stimulus onset, anticipation to other low condition
+  Reference wave for null event
+
+3. Ratings.csv
+This file contains participants' rated unpleasantness and pain intensity to each event.
+  Subject	- Unique participant ID
+  Condition	- Shock to self or other
+  Stimulus - Shock of high or low intensity
+  Unpleasantness - Unpleasantness rating, VAS 0-100
+  Intensity - Pain intensity rating, VAS 0-100
+  
+4. SCR.csv
+This file contains participants' skin conductance responses.
+  Subject	- Unique participant ID
+  Condition	- Shock to self or other
+  Stimulus - Shock of high or low intensity
+  SCR - Skin conductance response amplitude
+  
+5. Reaction_time_data.csv
+This file contains participants' skin conductance responses.
+  Subject	- Unique participant ID
+  Treatment	- Oxazepam or placebo group
+  FirstOrSecondTest	- First or second test
+  Wave - Wave 1 or 2
+  ResponseTime_ms - Reaction time in ms
