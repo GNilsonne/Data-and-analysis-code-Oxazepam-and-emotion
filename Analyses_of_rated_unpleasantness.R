@@ -367,3 +367,18 @@ plot(lmew2)
 summary(lmew2)
 intervals(lmew2)
 write.csv(summary(lmew2)$tTable, file = "Result_tables/Rated_unpleasantness_Wave2.csv")
+
+# Analyse effect of rated likability of confederate (wave 2 only)
+hist(ratingsData$RatedSympathy)
+plot(RatedSympathy ~ IRI_EC, data = ratingsData)
+cor.test(ratingsData$RatedSympathy, ratingsData$IRI_EC)
+
+ratingsData$RatedSympathy<- scale(ratingsData$RatedSympathy)
+ratingsData$RatedSympathy_OtherHigh <- ratingsData$RatedSympathy * ratingsData$OtherHigh
+ratingsData$RatedSympathy_OtherHigh[ratingsData$RatedSympathy_OtherHigh > 0 & !is.na(ratingsData$RatedSympathy_OtherHigh)] <- ratingsData$RatedSympathy_OtherHigh[ratingsData$RatedSympathy_OtherHigh > 0 & !is.na(ratingsData$RatedSympathy_OtherHigh)] - mean(ratingsData$RatedSympathy_OtherHigh[ratingsData$RatedSympathy_OtherHigh > 0 & !is.na(ratingsData$RatedSympathy_OtherHigh)], na.rm = TRUE)
+
+lmew2b <- lme(Unpleasantness ~ Treatment*Stimulus*Condition + IRI_EC_z + IRI_EC_z_OtherHigh + RatedSympathy + RatedSympathy_OtherHigh, data = ratingsData[ratingsData$Wave == 2, ], random = ~1|Subject, na.action = na.omit)
+plot(lmew2b)
+summary(lmew2b)
+intervals(lmew2b)
+

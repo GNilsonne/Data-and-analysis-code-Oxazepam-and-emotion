@@ -559,3 +559,13 @@ dev.off()
 
 # Write regression table
 write.csv(summary(lme1)$tTable, file = "Result_tables/HR_Wave2.csv")
+
+# Analyse effect of rated likability of confederate
+HeartRateEventData$RatedSympathy<- scale(HeartRateEventData$RatedSympathy)
+HeartRateEventData$RatedSympathy_OtherHigh <- HeartRateEventData$RatedSympathy * HeartRateEventData$OtherHigh
+HeartRateEventData$RatedSympathy_OtherHigh[HeartRateEventData$RatedSympathy_OtherHigh > 0 & !is.na(HeartRateEventData$RatedSympathy_OtherHigh)] <- HeartRateEventData$RatedSympathy_OtherHigh[HeartRateEventData$RatedSympathy_OtherHigh > 0 & !is.na(HeartRateEventData$RatedSympathy_OtherHigh)] - mean(HeartRateEventData$RatedSympathy_OtherHigh[HeartRateEventData$RatedSympathy_OtherHigh > 0 & !is.na(HeartRateEventData$RatedSympathy_OtherHigh)], na.rm = TRUE)
+
+lme2 <- lme(hr_mean ~ Treatment*Stimulus*Condition + IRI_EC_z + IRI_EC_z_OtherHigh + RatedSympathy + RatedSympathy_OtherHigh, data = HeartRateEventData, random = ~1|Subject, na.action = na.omit)
+plot(lme2)
+summary(lme2)
+intervals(lme2)

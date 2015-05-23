@@ -347,3 +347,13 @@ plot(lmew2)
 summary(lmew2)
 intervals(lmew2)
 write.csv(summary(lmew2)$tTable, file = "Result_tables/SCR_Wave2.csv")
+
+# Analyse effect of rated likability of confederate (wave 2 only)
+SCRData$RatedSympathy<- scale(SCRData$RatedSympathy)
+SCRData$RatedSympathy_OtherHigh <- SCRData$RatedSympathy * SCRData$OtherHigh
+SCRData$RatedSympathy_OtherHigh[SCRData$RatedSympathy_OtherHigh > 0 & !is.na(SCRData$RatedSympathy_OtherHigh)] <- SCRData$RatedSympathy_OtherHigh[SCRData$RatedSympathy_OtherHigh > 0 & !is.na(SCRData$RatedSympathy_OtherHigh)] - mean(SCRData$RatedSympathy_OtherHigh[SCRData$RatedSympathy_OtherHigh > 0 & !is.na(SCRData$RatedSympathy_OtherHigh)], na.rm = TRUE)
+
+lmew2b <- lme(sqrtSCR ~ Treatment*Stimulus*Condition + IRI_EC_z + IRI_EC_z_OtherHigh + RatedSympathy + RatedSympathy_OtherHigh, data = SCRData[SCRData$Wave == 2, ], random = ~1|Subject, na.action = na.omit)
+plot(lmew2b)
+summary(lmew2b)
+intervals(lmew2b)
