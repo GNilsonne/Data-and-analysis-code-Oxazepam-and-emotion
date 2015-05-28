@@ -31,17 +31,17 @@ ratingsData <- ratingsData[ratingsData$Included_EP == TRUE, ]
 
 # Put data columns in right formats
 ratingsData$Subject <- as.factor(ratingsData$Subject)
-ratingsData$Treatment <- as.factor(ratingsData$Treatment)
-ratingsData$Stimulus <- as.factor(ratingsData$Stimulus)
-ratingsData$Condition <- as.factor(ratingsData$Condition)
+ratingsData$Treatment <- relevel(ratingsData$Treatment, ref = "Placebo")
+ratingsData$Stimulus <- relevel(ratingsData$Stimulus, ref = "Low")
+ratingsData$Condition <- relevel(ratingsData$Condition, ref = "Self")
 
 # Analyse data
 # Include IRI-EC terms in model since we wish to control for baseline empathic propensity 
 
 # Make a new column to specify an "Other High" contrast in modelling
 ratingsData$OtherHigh <- as.numeric(ratingsData$Condition)*as.numeric(ratingsData$Stimulus)
-ratingsData$OtherHigh[ratingsData$OtherHigh == 1] <- 1
-ratingsData$OtherHigh[ratingsData$OtherHigh != 1] <- 0
+ratingsData$OtherHigh[ratingsData$OtherHigh != 4] <- 0
+ratingsData$OtherHigh[ratingsData$OtherHigh == 4] <- 1
 
 # z-transform IRI-EC
 ratingsData$IRI_EC_z <- scale(ratingsData$IRI_EC)
@@ -63,8 +63,8 @@ intervals(lme1)
 eff1 <- effect("Treatment*Stimulus*Condition", lme1)
 
 pdf("Fig_Unpleasantness1.pdf", width = 4, height = 4)
-plot(c(eff1$fit[6], eff1$fit[8]),
-     type = "b",
+plot(c(eff1$fit[1], eff1$fit[3]),
+     type = "n",
      frame.plot = F,
      ylab = "VAS",
      xlab = "Shock intensity",
@@ -72,20 +72,20 @@ plot(c(eff1$fit[6], eff1$fit[8]),
      xlim = c(1, 2.1),
      ylim = c(0, 50),
      col = col1,
-     main = "A. Rated unpleasantness, Self"
-     )
-lines(c(1.1, 2.1), c(eff1$fit[5], eff1$fit[7]), type = "b", col = col2, pch = 16)
-lines(c(1, 1), c(eff1$upper[6], eff1$lower[6]), col = col1)
-lines(c(2, 2), c(eff1$upper[8], eff1$lower[8]), col = col1)
-lines(c(1.1, 1.1), c(eff1$upper[5], eff1$lower[5]), col = col2)
-lines(c(2.1, 2.1), c(eff1$upper[7], eff1$lower[7]), col = col2)
-axis(1, at = c(1.05, 2.05), labels = c("High", "Low"))
-legend("topright", col = c(col1, col2), pch = c(1, 16), legend = c("Placebo", "Oxazepam"), bty = "n", lty = 1)
+     main = "A. Rated unpleasantness, Self")
+lines(c(1.1, 2.1), c(eff1$fit[1], eff1$fit[3]), type = "b", col = col1)
+lines(c(1, 2), c(eff1$fit[2], eff1$fit[4]), type = "b", col = col2, pch = 16)
+lines(c(1.1, 1.1), c(eff1$upper[1], eff1$lower[1]), col = col1)
+lines(c(2.1, 2.1), c(eff1$upper[3], eff1$lower[3]), col = col1)
+lines(c(1, 1), c(eff1$upper[2], eff1$lower[2]), col = col2)
+lines(c(2, 2), c(eff1$upper[4], eff1$lower[4]), col = col2)
+axis(1, at = c(1.05, 2.05), labels = c("Low", "High"))
+legend("topleft", col = c(col1, col2), pch = c(1, 16), legend = c("Placebo", "Oxazepam"), bty = "n", lty = 1)
 dev.off()
 
 pdf("Fig_Unpleasantness2.pdf", width = 4, height = 4)
-plot(c(eff1$fit[2], eff1$fit[4]),
-     type = "b",
+plot(c(eff1$fit[5], eff1$fit[7]),
+     type = "n",
      frame.plot = F,
      ylab = "VAS",
      xlab = "Shock intensity",
@@ -93,13 +93,15 @@ plot(c(eff1$fit[2], eff1$fit[4]),
      xlim = c(1, 2.1),
      ylim = c(0, 50),
      col = col1,
-     main = "B. Rated unpleasantness, Other")
-lines(c(1.1, 2.1), c(eff1$fit[1], eff1$fit[3]), type = "b", col = col2, pch = 16)
-lines(c(1, 1), c(eff1$upper[2], eff1$lower[2]), col = col1)
-lines(c(2, 2), c(eff1$upper[4], eff1$lower[4]), col = col1)
-lines(c(1.1, 1.1), c(eff1$upper[1], eff1$lower[1]), col = col2)
-lines(c(2.1, 2.1), c(eff1$upper[3], eff1$lower[3]), col = col2)
-axis(1, at = c(1.05, 2.05), labels = c("High", "Low"))
+     main = "B. Rated unpleasantness, Other"
+)
+lines(c(1.1, 2.1), c(eff1$fit[5], eff1$fit[7]), type = "b", col = col1)
+lines(c(1, 2), c(eff1$fit[6], eff1$fit[8]), type = "b", col = col2, pch = 16)
+lines(c(1.1, 1.1), c(eff1$upper[5], eff1$lower[5]), col = col1)
+lines(c(2.1, 2.1), c(eff1$upper[7], eff1$lower[7]), col = col1)
+lines(c(1, 1), c(eff1$upper[6], eff1$lower[6]), col = col2)
+lines(c(2, 2), c(eff1$upper[8], eff1$lower[8]), col = col2)
+axis(1, at = c(1.05, 2.05), labels = c("Low", "High"))
 dev.off()
 
 # Compare plots to less custom-generated output for verification
@@ -200,34 +202,34 @@ data_main <- rbind(data_main, data.frame(scale = "IRI-PT", beta = intervals(lme2
 data_main <- rbind(data_main, data.frame(scale = "IRI-EC", beta = intervals(lme1)$fixed[6, 2], lower = intervals(lme1)$fixed[6, 1], upper = intervals(lme1)$fixed[6, 3], group = "IRI", p = round(summary(lme1)$tTable[6, 5], 3)))
 
 # Make plot
-pdf("Fig_Unpleasantness3.pdf", width = 4, height = 4)
-axis.L <- function(side, ..., line.col){
-  if (side %in% c("bottom", "left")) {
-    col <- trellis.par.get("axis.text")$col
-    axis.default(side, ..., line.col = col)
-    if (side == "bottom")
-      grid::grid.lines(y = 0)
-  }
-}
+#pdf("Fig_Unpleasantness3.pdf", width = 4, height = 4)
+#axis.L <- function(side, ..., line.col){
+#  if (side %in% c("bottom", "left")) {
+#    col <- trellis.par.get("axis.text")$col
+#    axis.default(side, ..., line.col = col)
+#    if (side == "bottom")
+#      grid::grid.lines(y = 0)
+#  }
+#}
 
-sty <- list()
-sty$axis.line$col <- NA
-sty$strip.border$col <- NA
-sty$strip.background$col <- NA
-segplot(scale ~ lower + upper, data = data_main, 
-        centers = beta, 
-        lwd = 2,
-        draw.bands = FALSE,
-        col = c(col8, col8, col8, col3, col6, col5, col5, col5, col5),
-        par.settings = sty,
-        axis=axis.L,
-        xlab = "Beta, 95% CI",
-        main = "A. Rated unpleasantness",
-        panel = function (x,y,z,...){
-          panel.segplot(x,y,z,...)
-          panel.abline(v=0,lty=2)
-        })
-dev.off()
+#sty <- list()
+#sty$axis.line$col <- NA
+#sty$strip.border$col <- NA
+#sty$strip.background$col <- NA
+#segplot(scale ~ lower + upper, data = data_main, 
+#        centers = beta, 
+#        lwd = 2,
+#        draw.bands = FALSE,
+#        col = c(col8, col8, col8, col3, col6, col5, col5, col5, col5),
+#        par.settings = sty,
+#        axis=axis.L,
+#        xlab = "Beta, 95% CI",
+#        main = "A. Rated unpleasantness",
+#        panel = function (x,y,z,...){
+#          panel.segplot(x,y,z,...)
+#          panel.abline(v=0,lty=2)
+#        })
+#dev.off()
 
 # Put data in new frame
 data_emp <- data.frame(scale = "PPI-R-C", beta = intervals(lme9)$fixed[7, 2], lower = intervals(lme9)$fixed[7, 1], upper = intervals(lme9)$fixed[7, 3], group = "PPI", p = round(summary(lme9)$tTable[7, 5], 3))
@@ -241,34 +243,34 @@ data_emp <- rbind(data_emp, data.frame(scale = "IRI-PT", beta = intervals(lme2)$
 data_emp <- rbind(data_emp, data.frame(scale = "IRI-EC", beta = intervals(lme1)$fixed[7, 2], lower = intervals(lme1)$fixed[7, 1], upper = intervals(lme1)$fixed[7, 3], group = "IRI", p = round(summary(lme1)$tTable[7, 5], 3)))
 
 # Make plot
-pdf("Fig_Unpleasantness4.pdf", width = 4, height = 4)
-axis.L <- function(side, ..., line.col){
-  if (side %in% c("bottom", "left")) {
-    col <- trellis.par.get("axis.text")$col
-    axis.default(side, ..., line.col = col)
-    if (side == "bottom")
-      grid::grid.lines(y = 0)
-  }
-}
+#pdf("Fig_Unpleasantness4.pdf", width = 4, height = 4)
+#axis.L <- function(side, ..., line.col){
+#  if (side %in% c("bottom", "left")) {
+#    col <- trellis.par.get("axis.text")$col
+#    axis.default(side, ..., line.col = col)
+#    if (side == "bottom")
+#      grid::grid.lines(y = 0)
+#  }
+#}
 
-sty <- list()
-sty$axis.line$col <- NA
-sty$strip.border$col <- NA
-sty$strip.background$col <- NA
-segplot(scale ~ lower + upper, data = data_emp, 
-        centers = beta, 
-        lwd = 2,
-        draw.bands = FALSE,
-        col = c(col8, col8, col8, col3, col6, col5, col5, col5, col5),
-        par.settings = sty,
-        axis=axis.L,
-        xlab = "Beta, 95% CI",
-        main = "A. Rated unpleasantness",
-        panel = function (x,y,z,...){
-          panel.segplot(x,y,z,...)
-          panel.abline(v=0,lty=2)
-        })
-dev.off()
+#sty <- list()
+#sty$axis.line$col <- NA
+#sty$strip.border$col <- NA
+#sty$strip.background$col <- NA
+#segplot(scale ~ lower + upper, data = data_emp, 
+#        centers = beta, 
+#        lwd = 2,
+#        draw.bands = FALSE,
+#        col = c(col8, col8, col8, col3, col6, col5, col5, col5, col5),
+#        par.settings = sty,
+#        axis=axis.L,
+#        xlab = "Beta, 95% CI",
+#        main = "A. Rated unpleasantness",
+#        panel = function (x,y,z,...){
+#          panel.segplot(x,y,z,...)
+#          panel.abline(v=0,lty=2)
+#        })
+#dev.off()
 
 
 # Analyse rated pain intensity
@@ -286,7 +288,7 @@ eff10 <- effect("Treatment*Stimulus", lme10)
 
 pdf("Fig_Unpleasantness5.pdf", width = 4, height = 4)
 plot(c(eff10$fit[2], eff10$fit[4]),
-     type = "b",
+     type = "n",
      frame.plot = F,
      ylab = "VAS",
      xlab = "Shock intensity",
@@ -296,12 +298,13 @@ plot(c(eff10$fit[2], eff10$fit[4]),
      col = col1,
      main = "C. Rated pain intensity, Self"
 )
-lines(c(1.1, 2.1), c(eff10$fit[1], eff10$fit[3]), type = "b", col = col2, pch = 16)
-lines(c(1, 1), c(eff10$upper[2], eff10$lower[2]), col = col1)
-lines(c(2, 2), c(eff10$upper[4], eff10$lower[4]), col = col1)
-lines(c(1.1, 1.1), c(eff10$upper[1], eff10$lower[1]), col = col2)
-lines(c(2.1, 2.1), c(eff10$upper[3], eff10$lower[3]), col = col2)
-axis(1, at = c(1.05, 2.05), labels = c("High", "Low"))
+lines(c(1, 2), c(eff10$fit[2], eff10$fit[4]), type = "b", col = col2, pch = 16)
+lines(c(1.1, 2.1), c(eff10$fit[1], eff10$fit[3]), type = "b", col = col1)
+lines(c(1.1, 1.1), c(eff10$upper[1], eff10$lower[1]), col = col1)
+lines(c(2.1, 2.1), c(eff10$upper[3], eff10$lower[3]), col = col1)
+lines(c(1, 1), c(eff10$upper[2], eff10$lower[2]), col = col2)
+lines(c(2, 2), c(eff10$upper[4], eff10$lower[4]), col = col2)
+axis(1, at = c(1.05, 2.05), labels = c("Low", "HIgh"))
 #legend("topright", col = c(col1, col2), pch = c(1, 16), legend = c("Placebo", "Oxazepam"), bty = "n", lty = 1)
 dev.off()
 
@@ -382,3 +385,26 @@ plot(lmew2b)
 summary(lmew2b)
 intervals(lmew2b)
 
+
+# Plot effects for PPI-R
+data_emp3 <- data_emp[1:3, ]
+data_emp3 <- data_emp3[rev(rownames(data_emp3)),]
+
+pdf("Fig_Unpleasantness9.pdf", width = 6, height = 3.2)
+par(mar=c(5.1, 5, 4, 14))
+plot(x = data_emp3$beta, y = c(1:3), xlab = expression(beta), ylab = "", frame.plot = F, xlim = c(min(data_emp2$lower), max(data_emp2$upper)), xaxt = "n", yaxt = "n")
+title("Rated Unpleasantness", line = 2)
+abline(v = 0, col = "gray")
+axis(1, at = c(-6, 0, 6), labels = c(-6, 0, 6))
+points(x = data_emp3$beta, y = c(1:3), pch = 16)
+arrows(data_emp3$lower, c(1:3), data_emp3$upper, c(1:3), length = 0, lwd = 1.5)
+par(las=1)
+mtext(side = 2, at = c(1:3), text = c("SCI", "FD", "C"), line = 1)
+mtext(side = 4, at = 3.3, text = expression(beta), line = 1)
+mtext(side = 4, at = c(1:3), text = round(data_emp3$beta, 2), line = 1)
+mtext(side = 4, at = 3.3, text = "95 % CI", line = 4)
+CI <- paste("[", round(data_emp3$lower, 2), ", ", round(data_emp3$upper, 2), "]", sep = "")
+mtext(side = 4, at = c(1:3), text = CI, line = 4)
+mtext(side = 4, at = 3.3, text = expression(italic(p)), line = 10)
+mtext(side = 4, at = c(1:3), text = data_emp3$p, line = 10)
+dev.off()
