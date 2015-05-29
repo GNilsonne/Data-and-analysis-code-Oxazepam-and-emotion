@@ -335,6 +335,8 @@ dev.off()
 
 
 # Analyse waves 1 and 2 separately
+# Make a new directory if needed
+# dir.create("Result_tables”)
 summary(lme1)
 write.csv(summary(lme1)$tTable, file = "Result_tables/SCR_Waves1and2.csv")
 

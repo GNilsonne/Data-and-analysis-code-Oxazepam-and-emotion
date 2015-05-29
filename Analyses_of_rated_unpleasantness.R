@@ -356,6 +356,8 @@ mtext(side = 4, at = c(8:5, 3, 1), text = data_emp2$p, line = 10)
 dev.off()
 
 # Analyse waves 1 and 2 separately
+# Make a new directory if needed
+# dir.create("Result_tables”)
 summary(lme1)
 write.csv(summary(lme1)$tTable, file = "Result_tables/Rated_unpleasantness_Waves1and2.csv")
 
