@@ -31,9 +31,9 @@ SCRData <- SCRData[SCRData$Included_EP == TRUE, ]
 
 # Put data columns in right formats
 SCRData$Subject <- as.factor(SCRData$Subject)
-SCRData$Treatment <- as.factor(SCRData$Treatment)
-SCRData$Stimulus <- as.factor(SCRData$Stimulus)
-SCRData$Condition <- as.factor(SCRData$Condition)
+SCRData$Treatment <- relevel(SCRData$Treatment, ref = "Placebo")
+SCRData$Stimulus <- relevel(SCRData$Stimulus, ref = "Low")
+SCRData$Condition <- relevel(SCRData$Condition, ref = "Self")
 
 # Investigate normality of distribution of SCR:s
 hist(SCRData$SCR)
@@ -45,8 +45,8 @@ hist(SCRData$sqrtSCR)
 
 # Make a new column to specify an "Other High" contrast in modelling
 SCRData$OtherHigh <- as.numeric(SCRData$Condition)*as.numeric(SCRData$Stimulus)
-SCRData$OtherHigh[SCRData$OtherHigh == 1] <- 1
-SCRData$OtherHigh[SCRData$OtherHigh != 1] <- 0
+SCRData$OtherHigh[SCRData$OtherHigh != 4] <- 0
+SCRData$OtherHigh[SCRData$OtherHigh == 4] <- 1
 
 # z-transform IRI-EC
 SCRData$IRI_EC_z <- scale(SCRData$IRI_EC)
@@ -68,8 +68,8 @@ intervals(lme1)
 eff1 <- effect("Treatment*Stimulus*Condition", lme1)
 
 pdf("Fig_SCR1.pdf", width = 4, height = 4)
-plot(c(eff1$fit[6], eff1$fit[8]),
-     type = "b",
+plot(c(eff1$fit[1], eff1$fit[3]),
+     type = "n",
      frame.plot = F,
      ylab = "",
      xlab = "Shock intensity",
@@ -79,21 +79,22 @@ plot(c(eff1$fit[6], eff1$fit[8]),
      ylim = c(0.05, 0.35),
      col = col1,
      main = "A. Skin conductance responses, Self"
-     )
+)
 mtext(expression(sqrt(Amplitude)), side = 2, las = 3, line = 2.5)
-lines(c(1.1, 2.1), c(eff1$fit[5], eff1$fit[7]), type = "b", col = col2, pch = 16)
-lines(c(1, 1), c(eff1$upper[6], eff1$lower[6]), col = col1)
-lines(c(2, 2), c(eff1$upper[8], eff1$lower[8]), col = col1)
-lines(c(1.1, 1.1), c(eff1$upper[5], eff1$lower[5]), col = col2)
-lines(c(2.1, 2.1), c(eff1$upper[7], eff1$lower[7]), col = col2)
-axis(1, at = c(1.05, 2.05), labels = c("High", "Low"))
+lines(c(1, 2), c(eff1$fit[2], eff1$fit[4]), type = "b", col = col2, pch = 16)
+lines(c(1.1, 2.1), c(eff1$fit[1], eff1$fit[3]), type = "b", col = col1)
+lines(c(1.1, 1.1), c(eff1$upper[1], eff1$lower[1]), col = col1)
+lines(c(2.1, 2.1), c(eff1$upper[3], eff1$lower[3]), col = col1)
+lines(c(1, 1), c(eff1$upper[2], eff1$lower[2]), col = col2)
+lines(c(2, 2), c(eff1$upper[4], eff1$lower[4]), col = col2)
+axis(1, at = c(1.05, 2.05), labels = c("Low", "High"))
 axis(2, at = c(0.05, 0.15, 0.25, 0.35))
-legend("topright", col = c(col1, col2), pch = c(1, 16), legend = c("Placebo", "Oxazepam"), bty = "n", lty = 1)
+legend("topleft", col = c(col1, col2), pch = c(1, 16), legend = c("Placebo", "Oxazepam"), bty = "n", lty = 1)
 dev.off()
 
 pdf("Fig_SCR2.pdf", width = 4, height = 4)
-plot(c(eff1$fit[2], eff1$fit[4]),
-     type = "b",
+plot(c(eff1$fit[5], eff1$fit[7]),
+     type = "n",
      frame.plot = F,
      ylab = "",
      xlab = "Shock intensity",
@@ -103,14 +104,15 @@ plot(c(eff1$fit[2], eff1$fit[4]),
      ylim = c(0.05, 0.35),
      col = col1,
      main = "B. Skin conductance responses, Other"
-     )
+)
 mtext(expression(sqrt(Amplitude)), side = 2, las = 3, line = 2.5)
-lines(c(1.1, 2.1), c(eff1$fit[1], eff1$fit[3]), type = "b", col = col2, pch = 16)
-lines(c(1, 1), c(eff1$upper[2], eff1$lower[2]), col = col1)
-lines(c(2, 2), c(eff1$upper[4], eff1$lower[4]), col = col1)
-lines(c(1.1, 1.1), c(eff1$upper[1], eff1$lower[1]), col = col2)
-lines(c(2.1, 2.1), c(eff1$upper[3], eff1$lower[3]), col = col2)
-axis(1, at = c(1.05, 2.05), labels = c("High", "Low"))
+lines(c(1, 2), c(eff1$fit[6], eff1$fit[8]), type = "b", col = col2, pch = 16)
+lines(c(1.1, 2.1), c(eff1$fit[5], eff1$fit[7]), type = "b", col = col1)
+lines(c(1.1, 1.1), c(eff1$upper[5], eff1$lower[5]), col = col1)
+lines(c(2.1, 2.1), c(eff1$upper[7], eff1$lower[7]), col = col1)
+lines(c(1, 1), c(eff1$upper[6], eff1$lower[6]), col = col2)
+lines(c(2, 2), c(eff1$upper[8], eff1$lower[8]), col = col2)
+axis(1, at = c(1.05, 2.05), labels = c("Low", "High"))
 axis(2, at = c(0.05, 0.15, 0.25, 0.35))
 dev.off()
 
