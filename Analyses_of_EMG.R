@@ -165,33 +165,33 @@ EMGData$time_s <- EMGData$time_0.1s/10
 EMGData$time_s <- EMGData$time_s -2
   
 # Make spaghetti plots
-plot(EMG_corr ~ time_s, data = subset(EMGData, Condition == "Self" & Stimulus == "High"), frame.plot = F, type = 'n', main = "Self high", ylim = c(0, 0.04))
-for(i in unique(EMGData$subject)){
-  for( j in unique(EMGData$event_no[EMGData$subject == i])){
-    lines(EMG_corr ~ time_s, data = EMGData[EMGData$subject == i & EMGData$event_no == j & EMGData$Condition == "Self" & EMGData$Stimulus == "High", ], col = col4)
-  }
-}
+#plot(EMG_corr ~ time_s, data = subset(EMGData, Condition == "Self" & Stimulus == "High"), frame.plot = F, type = 'n', main = "Self high", ylim = c(0, 0.04))
+#for(i in unique(EMGData$subject)){
+#  for( j in unique(EMGData$event_no[EMGData$subject == i])){
+#    lines(EMG_corr ~ time_s, data = EMGData[EMGData$subject == i & EMGData$event_no == j & EMGData$Condition == "Self" & EMGData$Stimulus == "High", ], col = col4)
+#  }
+#}
   
-plot(EMG_corr ~ time_s, data = subset(EMGData, Condition == "Self" & Stimulus == "Low"), frame.plot = F, type = 'n', main = "Self low", ylim = c(0, 0.04))
-for(i in unique(EMGData$subject)){
-  for( j in unique(EMGData$event_no[EMGData$subject == i])){
-    lines(EMG_corr ~ time_s, data = EMGData[EMGData$subject == i & EMGData$event_no == j & EMGData$Condition == "Self" & EMGData$Stimulus == "Low", ], col = col7)
-  }
-}
+#plot(EMG_corr ~ time_s, data = subset(EMGData, Condition == "Self" & Stimulus == "Low"), frame.plot = F, type = 'n', main = "Self low", ylim = c(0, 0.04))
+#for(i in unique(EMGData$subject)){
+#  for( j in unique(EMGData$event_no[EMGData$subject == i])){
+#    lines(EMG_corr ~ time_s, data = EMGData[EMGData$subject == i & EMGData$event_no == j & EMGData$Condition == "Self" & EMGData$Stimulus == "Low", ], col = col7)
+#  }
+#}
 
-plot(EMG_corr ~ time_s, data = subset(EMGData, Condition == "Other" & Stimulus == "High"), frame.plot = F, type = 'n', main = "Other high", ylim = c(0, 0.04))
-for(i in unique(EMGData$subject)){
-  for( j in unique(EMGData$event_no[EMGData$subject == i])){
-    lines(EMG_corr ~ time_s, data = EMGData[EMGData$subject == i & EMGData$event_no == j & EMGData$Condition == "Other" & EMGData$Stimulus == "High", ], col = col4)
-  }
-}
+#plot(EMG_corr ~ time_s, data = subset(EMGData, Condition == "Other" & Stimulus == "High"), frame.plot = F, type = 'n', main = "Other high", ylim = c(0, 0.04))
+#for(i in unique(EMGData$subject)){
+#  for( j in unique(EMGData$event_no[EMGData$subject == i])){
+#    lines(EMG_corr ~ time_s, data = EMGData[EMGData$subject == i & EMGData$event_no == j & EMGData$Condition == "Other" & EMGData$Stimulus == "High", ], col = col4)
+#  }
+#}
 
-plot(EMG_corr ~ time_s, data = subset(EMGData, Condition == "Other" & Stimulus == "Low"), frame.plot = F, type = 'n', main = "Other low", ylim = c(0, 0.04))
-for(i in unique(EMGData$subject)){
-  for( j in unique(EMGData$event_no[EMGData$subject == i])){
-    lines(EMG_corr ~ time_s, data = EMGData[EMGData$subject == i & EMGData$event_no == j & EMGData$Condition == "Other" & EMGData$Stimulus == "Low", ], col = col7)
-  }
-}
+#plot(EMG_corr ~ time_s, data = subset(EMGData, Condition == "Other" & Stimulus == "Low"), frame.plot = F, type = 'n', main = "Other low", ylim = c(0, 0.04))
+#for(i in unique(EMGData$subject)){
+#  for( j in unique(EMGData$event_no[EMGData$subject == i])){
+#    lines(EMG_corr ~ time_s, data = EMGData[EMGData$subject == i & EMGData$event_no == j & EMGData$Condition == "Other" & EMGData$Stimulus == "Low", ], col = col7)
+#  }
+#}
 
 MeanEMGSelfHigh <- aggregate(EMG_corr ~ time_s, data = subset(EMGData, Condition == "Self" & Stimulus == "High"), mean)
 MeanEMGSelfLow <- aggregate(EMG_corr ~ time_s, data = subset(EMGData, Condition == "Self" & Stimulus == "Low"), mean)
@@ -335,13 +335,15 @@ EMGEventData$EMG_corr_mean <- log(EMGEventData$EMG_corr_mean)
 # Analyse data
 # Include IRI-EC terms in model since we wish to control for baseline empathic propensity 
 EMGEventData <- merge(EMGEventData, demData, by = "Subject")
+EMGEventData$Subject <- as.factor(EMGEventData$Subject)
+EMGEventData$Treatment <- relevel(EMGEventData$Treatment, ref = "Placebo")
+EMGEventData$Stimulus <- relevel(EMGEventData$Stimulus, ref = "Low")
+EMGEventData$Condition <- relevel(EMGEventData$Condition, ref = "Self")
 
 # Make a new column to specify an "Other High" contrast in modelling
-EMGEventData$Condition <- ordered(EMGEventData$Condition, levels = c("Other", "Self"))
-
 EMGEventData$OtherHigh <- as.numeric(EMGEventData$Condition)*as.numeric(EMGEventData$Stimulus)
-EMGEventData$OtherHigh[EMGEventData$OtherHigh == 1] <- 1
-EMGEventData$OtherHigh[EMGEventData$OtherHigh != 1] <- 0
+EMGEventData$OtherHigh[EMGEventData$OtherHigh != 4] <- 0
+EMGEventData$OtherHigh[EMGEventData$OtherHigh == 4] <- 1
 
 # z-transform IRI-EC
 EMGEventData$IRI_EC_z <- scale(EMGEventData$IRI_EC)
