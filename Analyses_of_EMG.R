@@ -364,8 +364,8 @@ intervals(lme1)
 eff1 <- effect("Treatment*Stimulus*Condition", lme1)
 
 pdf("Fig_EMG5.pdf", width = 4, height = 4)
-plot(c(eff1$fit[6], eff1$fit[8]),
-     type = "b",
+plot(c(eff1$fit[1], eff1$fit[3]),
+     type = "n",
      frame.plot = F,
      ylab = "log mean EMG",
      xlab = "Shock intensity",
@@ -376,19 +376,20 @@ plot(c(eff1$fit[6], eff1$fit[8]),
      col = col1,
      main = "E. Corrugator EMG, Self"
 )
-lines(c(1.1, 2.1), c(eff1$fit[5], eff1$fit[7]), type = "b", col = col2, pch = 16)
-lines(c(1, 1), c(eff1$upper[6], eff1$lower[6]), col = col1)
-lines(c(2, 2), c(eff1$upper[8], eff1$lower[8]), col = col1)
-lines(c(1.1, 1.1), c(eff1$upper[5], eff1$lower[5]), col = col2)
-lines(c(2.1, 2.1), c(eff1$upper[7], eff1$lower[7]), col = col2)
-axis(1, at = c(1.05, 2.05), labels = c("High", "Low"))
+lines(c(1, 2), c(eff1$fit[2], eff1$fit[4]), type = "b", col = col2, pch = 16)
+lines(c(1.1, 2.1), c(eff1$fit[1], eff1$fit[3]), type = "b", col = col1)
+lines(c(1.1, 1.1), c(eff1$upper[1], eff1$lower[1]), col = col1)
+lines(c(2.1, 2.1), c(eff1$upper[3], eff1$lower[3]), col = col1)
+lines(c(1, 1), c(eff1$upper[2], eff1$lower[2]), col = col2)
+lines(c(2, 2), c(eff1$upper[4], eff1$lower[4]), col = col2)
+axis(1, at = c(1.05, 2.05), labels = c("Low", "High"))
 axis(2, at = c(-8.7, -8.2, -7.7))
-legend("topright", col = c(col1, col2), pch = c(1, 16), legend = c("Placebo", "Oxazepam"), lty = 1, bty = "n")
+legend("topleft", col = c(col1, col2), pch = c(1, 16), legend = c("Placebo", "Oxazepam"), lty = 1, bty = "n")
 dev.off()
 
 pdf("Fig_EMG6.pdf", width = 4, height = 4)
-plot(c(eff1$fit[2], eff1$fit[4]),
-     type = "b",
+plot(c(eff1$fit[5], eff1$fit[7]),
+     type = "n",
      frame.plot = F,
      ylab = "log mean EMG",
      xlab = "Shock intensity",
@@ -399,12 +400,13 @@ plot(c(eff1$fit[2], eff1$fit[4]),
      col = col1,
      main = "F. Corrugator EMG, Other"
 )
-lines(c(1.1, 2.1), c(eff1$fit[1], eff1$fit[3]), type = "b", col = col2, pch = 16)
-lines(c(1, 1), c(eff1$upper[2], eff1$lower[2]), col = col1)
-lines(c(2, 2), c(eff1$upper[4], eff1$lower[4]), col = col1)
-lines(c(1.1, 1.1), c(eff1$upper[1], eff1$lower[1]), col = col2)
-lines(c(2.1, 2.1), c(eff1$upper[3], eff1$lower[3]), col = col2)
-axis(1, at = c(1.05, 2.05), labels = c("High", "Low"))
+lines(c(1, 2), c(eff1$fit[6], eff1$fit[8]), type = "b", col = col2, pch = 16)
+lines(c(1.1, 2.1), c(eff1$fit[5], eff1$fit[7]), type = "b", col = col1)
+lines(c(1.1, 1.1), c(eff1$upper[5], eff1$lower[5]), col = col1)
+lines(c(2.1, 2.1), c(eff1$upper[7], eff1$lower[7]), col = col1)
+lines(c(1, 1), c(eff1$upper[6], eff1$lower[6]), col = col2)
+lines(c(2, 2), c(eff1$upper[8], eff1$lower[8]), col = col2)
+axis(1, at = c(1.05, 2.05), labels = c("Low", "High"))
 axis(2, at = c(-8.7, -8.2, -7.7))
 dev.off()
 
@@ -651,3 +653,13 @@ lmew2b <- lme(EMG_corr_mean ~ Treatment*Stimulus*Condition + IRI_EC_z + IRI_EC_z
 plot(lmew2b)
 summary(lmew2b)
 intervals(lmew2b)
+
+# Make plots for effect of PPI-R
+plot(effect("PPI_SCI_z", lme7), main = "")
+plot(effect("PPI_SCI_z_OtherHigh", lme7), main = "")
+
+plot(effect("PPI_FD_z", lme8), main = "")
+plot(effect("PPI_FD_z_OtherHigh", lme8), main = "")
+
+plot(effect("PPI_C_z", lme9), main = "")
+plot(effect("PPI_C_z_OtherHigh", lme9), main = "")

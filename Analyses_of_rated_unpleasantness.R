@@ -410,3 +410,13 @@ mtext(side = 4, at = c(1:3), text = CI, line = 4)
 mtext(side = 4, at = 3.3, text = expression(italic(p)), line = 10)
 mtext(side = 4, at = c(1:3), text = data_emp3$p, line = 10)
 dev.off()
+
+# Make plots for effect of PPI-R
+plot(effect("PPI_SCI_z", lme7), main = "")
+plot(effect("PPI_SCI_z_OtherHigh", lme7), main = "")
+
+plot(effect("PPI_FD_z", lme8), main = "")
+plot(effect("PPI_FD_z_OtherHigh", lme8), main = "")
+
+plot(effect("PPI_C_z", lme9), main = "")
+plot(effect("PPI_C_z_OtherHigh", lme9), main = "")

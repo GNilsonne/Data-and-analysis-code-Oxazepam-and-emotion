@@ -361,3 +361,13 @@ lmew2b <- lme(sqrtSCR ~ Treatment*Stimulus*Condition + IRI_EC_z + IRI_EC_z_Other
 plot(lmew2b)
 summary(lmew2b)
 intervals(lmew2b)
+
+# Make plots for effect of PPI-R
+plot(effect("PPI_SCI_z", lme7), main = "")
+plot(effect("PPI_SCI_z_OtherHigh", lme7), main = "")
+
+plot(effect("PPI_FD_z", lme8), main = "")
+plot(effect("PPI_FD_z_OtherHigh", lme8), main = "")
+
+plot(effect("PPI_C_z", lme9), main = "")
+plot(effect("PPI_C_z_OtherHigh", lme9), main = "")
