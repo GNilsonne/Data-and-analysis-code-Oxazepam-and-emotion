@@ -420,3 +420,11 @@ plot(effect("PPI_FD_z_OtherHigh", lme8), main = "")
 
 plot(effect("PPI_C_z", lme9), main = "")
 plot(effect("PPI_C_z_OtherHigh", lme9), main = "")
+
+# Calculate a response index for each participant and write
+ratings_agg <- aggregate(ratingsData[, c("Unpleasantness", "Subject", "Condition", "Stimulus")], list(Subject = ratingsData$Subject, Condition = ratingsData$Condition, Stimulus = ratingsData$Stimulus), FUN = "mean", na.rm = TRUE)
+IndividualResponses <- data.frame(Subject = ratings_agg$Subject[ratings_agg$Stimulus == "Low" & ratings_agg$Condition == "Self"], 
+                                  Self = ratings_agg$Unpleasantness[ratings_agg$Condition == "Self" & ratings_agg$Stimulus == "High"] - ratings_agg$Unpleasantness[ratings_agg$Condition == "Self" & ratings_agg$Stimulus == "Low"],
+                                  Other = ratings_agg$Unpleasantness[ratings_agg$Condition == "Other" & ratings_agg$Stimulus == "High"] - ratings_agg$Unpleasantness[ratings_agg$Condition == "Other" & ratings_agg$Stimulus == "Low"],
+                                  OtherVsSelf = (ratings_agg$Unpleasantness[ratings_agg$Condition == "Other" & ratings_agg$Stimulus == "High"] - ratings_agg$Unpleasantness[ratings_agg$Condition == "Other" & ratings_agg$Stimulus == "Low"]) - (ratings_agg$Unpleasantness[ratings_agg$Condition == "Self" & ratings_agg$Stimulus == "High"] - ratings_agg$Unpleasantness[ratings_agg$Condition == "Self" & ratings_agg$Stimulus == "Low"]))
+write.csv(IndividualResponses, file = "IndividualResponsesUnpleasantness.csv", row.names = FALSE)
