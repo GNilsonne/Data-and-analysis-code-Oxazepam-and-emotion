@@ -583,3 +583,11 @@ plot(effect("PPI_FD_z_OtherHigh", lme8), main = "")
 
 plot(effect("PPI_C_z", lme9), main = "")
 plot(effect("PPI_C_z_OtherHigh", lme9), main = "")
+
+# Calculate a response index for each participant and write
+HeartRate_agg <- aggregate(HeartRateEventData[, c("hr_mean", "Subject", "Condition", "Stimulus")], list(Subject = HeartRateEventData$Subject, Condition = HeartRateEventData$Condition, Stimulus = HeartRateEventData$Stimulus), FUN = "mean", na.rm = TRUE)
+IndividualResponses <- data.frame(Subject = HeartRate_agg$Subject[HeartRate_agg$Stimulus == "Low" & HeartRate_agg$Condition == "Self"], 
+                                  Self = HeartRate_agg$hr_mean[HeartRate_agg$Condition == "Self" & HeartRate_agg$Stimulus == "High"] - HeartRate_agg$hr_mean[HeartRate_agg$Condition == "Self" & HeartRate_agg$Stimulus == "Low"],
+                                  Other = HeartRate_agg$hr_mean[HeartRate_agg$Condition == "Other" & HeartRate_agg$Stimulus == "High"] - HeartRate_agg$hr_mean[HeartRate_agg$Condition == "Other" & HeartRate_agg$Stimulus == "Low"],
+                                  OtherVsSelf = (HeartRate_agg$hr_mean[HeartRate_agg$Condition == "Other" & HeartRate_agg$Stimulus == "High"] - HeartRate_agg$hr_mean[HeartRate_agg$Condition == "Other" & HeartRate_agg$Stimulus == "Low"]) - (HeartRate_agg$hr_mean[HeartRate_agg$Condition == "Self" & HeartRate_agg$Stimulus == "High"] - HeartRate_agg$hr_mean[HeartRate_agg$Condition == "Self" & HeartRate_agg$Stimulus == "Low"]))
+write.csv(IndividualResponses, file = "IndividualResponsesHeartRate.csv", row.names = FALSE)
