@@ -665,9 +665,10 @@ plot(effect("PPI_C_z", lme9), main = "")
 plot(effect("PPI_C_z_OtherHigh", lme9), main = "")
 
 # Calculate a response index for each participant and write
-EMG_agg <- aggregate(EMGEventData[, c("EMG_corr_mean", "Subject", "Condition", "Stimulus")], list(Subject = EMGEventData$Subject, Condition = EMGEventData$Condition, Stimulus = EMGEventData$Stimulus), FUN = "mean", na.rm = TRUE)
-IndividualResponses <- data.frame(Subject = EMG_agg$Subject[EMG_agg$Stimulus == "Low" & EMG_agg$Condition == "Self"], 
-                                  Self = EMG_agg$EMG_corr_mean[EMG_agg$Condition == "Self" & EMG_agg$Stimulus == "High"] - EMG_agg$EMG_corr_mean[EMG_agg$Condition == "Self" & EMG_agg$Stimulus == "Low"],
-                                  Other = EMG_agg$EMG_corr_mean[EMG_agg$Condition == "Other" & EMG_agg$Stimulus == "High"] - EMG_agg$EMG_corr_mean[EMG_agg$Condition == "Other" & EMG_agg$Stimulus == "Low"],
-                                  OtherVsSelf = (EMG_agg$EMG_corr_mean[EMG_agg$Condition == "Other" & EMG_agg$Stimulus == "High"] - EMG_agg$EMG_corr_mean[EMG_agg$Condition == "Other" & EMG_agg$Stimulus == "Low"]) - (EMG_agg$EMG_corr_mean[EMG_agg$Condition == "Self" & EMG_agg$Stimulus == "High"] - EMG_agg$EMG_corr_mean[EMG_agg$Condition == "Self" & EMG_agg$Stimulus == "Low"]))
+lme1b <- lme(EMG_corr_mean ~ Treatment*Stimulus*Condition + Wave, data = EMGEventData, random = ~1|Subject, na.action = na.omit)
+coef <- coef(lme1b)
+coef$Subject <- row.names(coef)
+coef <- merge(coef, demData[, c("Subject", "Treatment", "Wave")], by = "Subject")
+coef$EMG_corr_mean <- coef$"(Intercept)" + coef$StimulusHigh + coef$ConditionOther + coef$"StimulusHigh:ConditionOther"
+IndividualResponses <- coef[, c("Subject", "EMG_corr_mean")]
 write.csv(IndividualResponses, file = "IndividualResponsesEMG.csv", row.names = FALSE)
