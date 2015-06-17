@@ -373,10 +373,10 @@ plot(effect("PPI_C_z", lme9), main = "")
 plot(effect("PPI_C_z_OtherHigh", lme9), main = "")
 
 # Calculate a response index for each participant and write
-SCR_agg <- aggregate(SCRData[, c("sqrtSCR", "Subject", "Condition", "Stimulus")], list(Subject = SCRData$Subject, Condition = SCRData$Condition, Stimulus = SCRData$Stimulus), FUN = "mean", na.rm = TRUE)
-IndividualResponses <- data.frame(Subject = SCR_agg$Subject[SCR_agg$Stimulus == "Low" & SCR_agg$Condition == "Self"], 
-                                  Self = SCR_agg$sqrtSCR[SCR_agg$Condition == "Self" & SCR_agg$Stimulus == "High"] - SCR_agg$sqrtSCR[SCR_agg$Condition == "Self" & SCR_agg$Stimulus == "Low"],
-                                  Other = SCR_agg$sqrtSCR[SCR_agg$Condition == "Other" & SCR_agg$Stimulus == "High"] - SCR_agg$sqrtSCR[SCR_agg$Condition == "Other" & SCR_agg$Stimulus == "Low"],
-                                  OtherVsSelf = (SCR_agg$sqrtSCR[SCR_agg$Condition == "Other" & SCR_agg$Stimulus == "High"] - SCR_agg$sqrtSCR[SCR_agg$Condition == "Other" & SCR_agg$Stimulus == "Low"]) - (SCR_agg$sqrtSCR[SCR_agg$Condition == "Self" & SCR_agg$Stimulus == "High"] - SCR_agg$sqrtSCR[SCR_agg$Condition == "Self" & SCR_agg$Stimulus == "Low"]))
+lme1b <- lme(sqrtSCR ~ Treatment*Stimulus*Condition + Wave, data = SCRData, random = ~1|Subject, na.action = na.omit)
+coef <- coef(lme1b)
+coef$Subject <- row.names(coef)
+coef <- merge(coef, demData[, c("Subject", "Treatment", "Wave")], by = "Subject")
+coef$sqrtSCR <- coef$"(Intercept)" + coef$StimulusHigh + coef$ConditionOther + coef$"StimulusHigh:ConditionOther"
+IndividualResponses <- coef[, c("Subject", "sqrtSCR")]
 write.csv(IndividualResponses, file = "IndividualResponsesSCR.csv", row.names = FALSE)
-
