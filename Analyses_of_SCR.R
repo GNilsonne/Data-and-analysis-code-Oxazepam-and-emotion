@@ -380,3 +380,24 @@ coef <- merge(coef, demData[, c("Subject", "Treatment", "Wave")], by = "Subject"
 coef$sqrtSCR <- coef$"(Intercept)" + coef$StimulusHigh + coef$ConditionOther + coef$"StimulusHigh:ConditionOther"
 IndividualResponses <- coef[, c("Subject", "sqrtSCR")]
 write.csv(IndividualResponses, file = "IndividualResponsesSCR.csv", row.names = FALSE)
+
+# Calculate standardised regression coefficients for the PPI-R subscales
+SCRData$sqrtSCR_z <- scale(SCRData$sqrtSCR)
+
+# PPI-R-SCI
+lme7b <- lme(sqrtSCR_z ~ Treatment*Stimulus*Condition + Wave + PPI_SCI_z + PPI_SCI_z_OtherHigh, data = SCRData, random = ~1|Subject, na.action = na.omit)
+plot(lme7b)
+summary(lme7b)
+intervals(lme7b)
+
+# PPI-R-FD
+lme8b <- lme(sqrtSCR_z ~ Treatment*Stimulus*Condition + Wave + PPI_FD_z + PPI_FD_z_OtherHigh, data = SCRData, random = ~1|Subject, na.action = na.omit)
+plot(lme8b)
+summary(lme8b)
+intervals(lme8b)
+
+# PPI-R-C
+lme9b <- lme(sqrtSCR_z ~ Treatment*Stimulus*Condition + Wave + PPI_C_z + PPI_C_z_OtherHigh, data = SCRData, random = ~1|Subject, na.action = na.omit)
+plot(lme9b)
+summary(lme9b)
+intervals(lme9b)

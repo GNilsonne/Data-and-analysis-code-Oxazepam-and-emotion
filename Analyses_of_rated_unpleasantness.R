@@ -429,3 +429,24 @@ coef <- merge(coef, demData[, c("Subject", "Treatment", "Wave")], by = "Subject"
 coef$Unpleasantness <- coef$"(Intercept)" + coef$StimulusHigh + coef$ConditionOther + coef$"StimulusHigh:ConditionOther"
 IndividualResponses <- coef[, c("Subject", "Unpleasantness")]
 write.csv(IndividualResponses, file = "IndividualResponsesUnpleasantness.csv", row.names = FALSE)
+
+# Calculate standardised regression coefficients for the PPI-R subscales
+ratingsData$Unpleasantness_z <- scale(ratingsData$Unpleasantness)
+
+# PPI-R-SCI
+lme7b <- lme(Unpleasantness_z ~ Treatment*Stimulus*Condition + Wave + PPI_SCI_z + PPI_SCI_z_OtherHigh, data = ratingsData, random = ~1|Subject, na.action = na.omit)
+plot(lme7b)
+summary(lme7b)
+intervals(lme7b)
+
+# PPI-R-FD
+lme8b <- lme(Unpleasantness_z ~ Treatment*Stimulus*Condition + Wave + PPI_FD_z + PPI_FD_z_OtherHigh, data = ratingsData, random = ~1|Subject, na.action = na.omit)
+plot(lme8b)
+summary(lme8b)
+intervals(lme8b)
+
+# PPI-R-C
+lme9b <- lme(Unpleasantness_z ~ Treatment*Stimulus*Condition + Wave + PPI_C_z + PPI_C_z_OtherHigh, data = ratingsData, random = ~1|Subject, na.action = na.omit)
+plot(lme9b)
+summary(lme9b)
+intervals(lme9b)
