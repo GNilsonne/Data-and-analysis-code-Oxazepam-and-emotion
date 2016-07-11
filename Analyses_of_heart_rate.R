@@ -472,48 +472,77 @@ segplot(scale ~ lower + upper, data = data_main,
         })
 dev.off()
 
+# # Put data in new frame
+# data_emp <- data.frame(scale = "PPI-R-C", beta = intervals(lme9)$fixed[6, 2], lower = intervals(lme9)$fixed[6, 1], upper = intervals(lme9)$fixed[6, 3], group = "PPI", p = round(summary(lme9)$tTable[6, 5], 3))
+# data_emp <- rbind(data_emp, data.frame(scale = "PPI-R-FD", beta = intervals(lme8)$fixed[6, 2], lower = intervals(lme8)$fixed[6, 1], upper = intervals(lme8)$fixed[6, 3], group = "PPI", p = round(summary(lme8)$tTable[6, 5], 3)))
+# data_emp <- rbind(data_emp, data.frame(scale = "PPI-R-SCI", beta = intervals(lme7)$fixed[6, 2], lower = intervals(lme7)$fixed[6, 1], upper = intervals(lme7)$fixed[6, 3], group = "PPI", p = round(summary(lme7)$tTable[6, 5], 3)))
+# data_emp <- rbind(data_emp, data.frame(scale = "TAS-20", beta = intervals(lme6)$fixed[6, 2], lower = intervals(lme6)$fixed[6, 1], upper = intervals(lme6)$fixed[6, 3], group = "TAS", p = round(summary(lme6)$tTable[6, 5], 3)))
+# data_emp <- rbind(data_emp, data.frame(scale = "STAI-T", beta = intervals(lme5)$fixed[6, 2], lower = intervals(lme5)$fixed[6, 1], upper = intervals(lme5)$fixed[6, 3], group = "STAI", p = round(summary(lme5)$tTable[6, 5], 3)))
+# data_emp <- rbind(data_emp, data.frame(scale = "IRI-F", beta = intervals(lme4)$fixed[6, 2], lower = intervals(lme4)$fixed[6, 1], upper = intervals(lme4)$fixed[6, 3], group = "IRI", p = round(summary(lme4)$tTable[6, 5], 3)))
+# data_emp <- rbind(data_emp, data.frame(scale = "IRI-PD", beta = intervals(lme3)$fixed[6, 2], lower = intervals(lme3)$fixed[6, 1], upper = intervals(lme3)$fixed[6, 3], group = "IRI", p = round(summary(lme3)$tTable[6, 5], 3)))
+# data_emp <- rbind(data_emp, data.frame(scale = "IRI-PT", beta = intervals(lme2)$fixed[6, 2], lower = intervals(lme2)$fixed[6, 1], upper = intervals(lme2)$fixed[6, 3], group = "IRI", p = round(summary(lme2)$tTable[6, 5], 3)))
+# data_emp <- rbind(data_emp, data.frame(scale = "IRI-EC", beta = intervals(lme1)$fixed[6, 2], lower = intervals(lme1)$fixed[6, 1], upper = intervals(lme1)$fixed[6, 3], group = "IRI", p = round(summary(lme1)$tTable[6, 5], 3)))
+# 
+# # Make plot
+# pdf("Fig_HR6.pdf", width = 4, height = 4)
+# axis.L <- function(side, ..., line.col){
+#   if (side %in% c("bottom", "left")) {
+#     col <- trellis.par.get("axis.text")$col
+#     axis.default(side, ..., line.col = col)
+#     if (side == "bottom")
+#       grid::grid.lines(y = 0)
+#   }
+# }
+# 
+# sty <- list()
+# sty$axis.line$col <- NA
+# sty$strip.border$col <- NA
+# sty$strip.background$col <- NA
+# segplot(scale ~ lower + upper, data = data_emp,
+#         centers = beta,
+#         lwd = 2,
+#         draw.bands = FALSE,
+#         col = c(col8, col8, col8, col3, col6, col5, col5, col5, col5),
+#         par.settings = sty,
+#         axis=axis.L,
+#         xlab = "Beta, 95% CI",
+#         main = "C. Heart rate",
+#         panel = function (x,y,z,...){
+#           panel.segplot(x,y,z,...)
+#           panel.abline(v=0,lty=2)
+#         })
+# dev.off()
+
 # Put data in new frame
-data_emp <- data.frame(scale = "PPI-R-C", beta = intervals(lme9)$fixed[6, 2], lower = intervals(lme9)$fixed[6, 1], upper = intervals(lme9)$fixed[6, 3], group = "PPI", p = round(summary(lme9)$tTable[6, 5], 3))
-data_emp <- rbind(data_emp, data.frame(scale = "PPI-R-FD", beta = intervals(lme8)$fixed[6, 2], lower = intervals(lme8)$fixed[6, 1], upper = intervals(lme8)$fixed[6, 3], group = "PPI", p = round(summary(lme8)$tTable[6, 5], 3)))
-data_emp <- rbind(data_emp, data.frame(scale = "PPI-R-SCI", beta = intervals(lme7)$fixed[6, 2], lower = intervals(lme7)$fixed[6, 1], upper = intervals(lme7)$fixed[6, 3], group = "PPI", p = round(summary(lme7)$tTable[6, 5], 3)))
-data_emp <- rbind(data_emp, data.frame(scale = "TAS-20", beta = intervals(lme6)$fixed[6, 2], lower = intervals(lme6)$fixed[6, 1], upper = intervals(lme6)$fixed[6, 3], group = "TAS", p = round(summary(lme6)$tTable[6, 5], 3)))
-data_emp <- rbind(data_emp, data.frame(scale = "STAI-T", beta = intervals(lme5)$fixed[6, 2], lower = intervals(lme5)$fixed[6, 1], upper = intervals(lme5)$fixed[6, 3], group = "STAI", p = round(summary(lme5)$tTable[6, 5], 3)))
-data_emp <- rbind(data_emp, data.frame(scale = "IRI-F", beta = intervals(lme4)$fixed[6, 2], lower = intervals(lme4)$fixed[6, 1], upper = intervals(lme4)$fixed[6, 3], group = "IRI", p = round(summary(lme4)$tTable[6, 5], 3)))
-data_emp <- rbind(data_emp, data.frame(scale = "IRI-PD", beta = intervals(lme3)$fixed[6, 2], lower = intervals(lme3)$fixed[6, 1], upper = intervals(lme3)$fixed[6, 3], group = "IRI", p = round(summary(lme3)$tTable[6, 5], 3)))
+data_emp <- data.frame(scale = "IRI-EC", beta = intervals(lme1)$fixed[6, 2], lower = intervals(lme1)$fixed[6, 1], upper = intervals(lme1)$fixed[6, 3], group = "IRI", p = round(summary(lme1)$tTable[6, 5], 3))
 data_emp <- rbind(data_emp, data.frame(scale = "IRI-PT", beta = intervals(lme2)$fixed[6, 2], lower = intervals(lme2)$fixed[6, 1], upper = intervals(lme2)$fixed[6, 3], group = "IRI", p = round(summary(lme2)$tTable[6, 5], 3)))
-data_emp <- rbind(data_emp, data.frame(scale = "IRI-EC", beta = intervals(lme1)$fixed[6, 2], lower = intervals(lme1)$fixed[6, 1], upper = intervals(lme1)$fixed[6, 3], group = "IRI", p = round(summary(lme1)$tTable[6, 5], 3)))
+data_emp <- rbind(data_emp, data.frame(scale = "IRI-PD", beta = intervals(lme3)$fixed[6, 2], lower = intervals(lme3)$fixed[6, 1], upper = intervals(lme3)$fixed[6, 3], group = "IRI", p = round(summary(lme3)$tTable[6, 5], 3)))
+data_emp <- rbind(data_emp, data.frame(scale = "IRI-F", beta = intervals(lme4)$fixed[6, 2], lower = intervals(lme4)$fixed[6, 1], upper = intervals(lme4)$fixed[6, 3], group = "IRI", p = round(summary(lme4)$tTable[6, 5], 3)))
+data_emp <- rbind(data_emp, data.frame(scale = "STAI-T", beta = intervals(lme5)$fixed[6, 2], lower = intervals(lme5)$fixed[6, 1], upper = intervals(lme5)$fixed[6, 3], group = "STAI", p = round(summary(lme5)$tTable[6, 5], 3)))
+data_emp <- rbind(data_emp, data.frame(scale = "TAS-20", beta = intervals(lme6)$fixed[6, 2], lower = intervals(lme6)$fixed[6, 1], upper = intervals(lme6)$fixed[6, 3], group = "TAS", p = round(summary(lme6)$tTable[6, 5], 3)))
+data_emp <- rbind(data_emp, data.frame(scale = "PPI-R-SCI", beta = intervals(lme7)$fixed[6, 2], lower = intervals(lme7)$fixed[6, 1], upper = intervals(lme7)$fixed[6, 3], group = "PPI", p = round(summary(lme7)$tTable[6, 5], 3)))
+data_emp <- rbind(data_emp, data.frame(scale = "PPI-R-FD", beta = intervals(lme8)$fixed[6, 2], lower = intervals(lme8)$fixed[6, 1], upper = intervals(lme8)$fixed[6, 3], group = "PPI", p = round(summary(lme8)$tTable[6, 5], 3)))
+data_emp <- rbind(data_emp, data.frame(scale = "PPI-R-C", beta = intervals(lme9)$fixed[6, 2], lower = intervals(lme9)$fixed[6, 1], upper = intervals(lme9)$fixed[6, 3], group = "PPI", p = round(summary(lme9)$tTable[6, 5], 3)))
 
 # Make plot
-pdf("Fig_HR6.pdf", width = 4, height = 4)
-axis.L <- function(side, ..., line.col){
-  if (side %in% c("bottom", "left")) {
-    col <- trellis.par.get("axis.text")$col
-    axis.default(side, ..., line.col = col)
-    if (side == "bottom")
-      grid::grid.lines(y = 0)
-  }
-}
-
-sty <- list()
-sty$axis.line$col <- NA
-sty$strip.border$col <- NA
-sty$strip.background$col <- NA
-segplot(scale ~ lower + upper, data = data_emp, 
-        centers = beta, 
-        lwd = 2,
-        draw.bands = FALSE,
-        col = c(col8, col8, col8, col3, col6, col5, col5, col5, col5),
-        par.settings = sty,
-        axis=axis.L,
-        xlab = "Beta, 95% CI",
-        main = "C. Heart rate",
-        panel = function (x,y,z,...){
-          panel.segplot(x,y,z,...)
-          panel.abline(v=0,lty=2)
-        })
+pdf("Fig_HR_PPIR2.pdf", width = 7, height = 5)
+par(mar=c(5.1, 5.4, 4, 14))
+plot(x = data_emp$beta, y = c(12:9, 7, 5, 3:1), xlab = expression(beta), ylab = "", frame.plot = F, xlim = c(min(data_emp$lower), max(data_emp$upper)), xaxt = "n", yaxt = "n")
+title("C. Heart rate", line = 2)
+abline(v = 0, col = "gray")
+axis(1, at = c(-0.02, 0, 0.02), labels = c(-0.02, 0, 0.02))
+points(x = data_emp$beta, y = c(12:9, 7, 5, 3:1), pch = 16)
+arrows(data_emp$lower, c(12:9, 7, 5, 3:1), data_emp$upper, c(12:9, 7, 5, 3:1), length = 0, lwd = 1.5)
+par(las=1)
+mtext(side = 2, at = c(12:9, 7, 5, 3:1), text = c("IRI-EC", " IRI-PT", "IRI-PD", "IRI-F", "STAI-T", "TAS-20", "PPI-R-SCI", "PPI-R-FD", "PPI-R-C"), line = 1)
+mtext(side = 4, at = 13, text = expression(beta), line = 1)
+mtext(side = 4, at = c(12:9, 7, 5, 3:1), text = round(data_emp$beta, 2), line = 1)
+mtext(side = 4, at = 13, text = "95 % CI", line = 4)
+CI <- paste("[", round(data_emp$lower, 2), ", ", round(data_emp$upper, 2), "]", sep = "")
+mtext(side = 4, at = c(12:9, 7, 5, 3:1), text = CI, line = 4)
+mtext(side = 4, at = 13, text = expression(italic(p)), line = 10)
+mtext(side = 4, at = c(12:9, 7, 5, 3:1), text = data_emp$p, line = 10)
 dev.off()
-
-
 
 # Make new plots including tables of effects
 data_main2 <- data_main[4:9, ]
