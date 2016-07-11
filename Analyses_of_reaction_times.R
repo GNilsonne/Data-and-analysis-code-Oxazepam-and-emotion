@@ -19,8 +19,8 @@ demDataURL <- getURL("https://raw.githubusercontent.com/GNilsonne/Data-and-analy
 demData <- read.csv(text = demDataURL)
 
 # Merge data, retain only included participants
-RTData <- merge(RTData, demData[, c("Subject", "Included_EP")], by = "Subject")
-RTData <- RTData[RTData$Included_EP == TRUE, ]
+RTData <- merge(RTData, demData[, c("Subject", "Included_EP", "Included_ER")], by = "Subject")
+RTData <- RTData[(RTData$Included_EP == TRUE | RTData$Included_ER == TRUE), ]
 
 # Inverse transform
 RTData$Inv_RT <- 1/RTData$ResponseTime_ms
