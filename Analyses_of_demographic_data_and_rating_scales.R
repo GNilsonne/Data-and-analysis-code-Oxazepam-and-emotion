@@ -202,8 +202,8 @@ t.test(IRIdiff2 ~ Treatment, data = demData[demData$Included_EP == TRUE, ])
 
 # Analyse effect of oxazepam on rated state anxiety
 # Make dataframe for mixed-effects model
-STAISData <- rbind(demData[, c("Subject", "Treatment", "Wave", "Included_EP", "Included_ER", "STAI.S", "STAI.S.Scrambled")], demData[, c("Subject", "Treatment", "Wave", "Included_EP", "Included_ER", "STAI.S", "STAI.S.Scrambled")]) 
-STAISData <- STAISData[STAISData$Included_EP == T | STAISData$Included_ER == T, ] # Remove participants not included in this experiment
+STAISData <- rbind(demData[, c("Subject", "Treatment", "Wave", "Included_EP", "Included_FMOV", "STAI.S", "STAI.S.Scrambled")], demData[, c("Subject", "Treatment", "Wave", "Included_EP", "Included_FMOV", "STAI.S", "STAI.S.Scrambled")]) 
+STAISData <- STAISData[STAISData$Included_EP == T | STAISData$Included_FMOV == T, ] # Remove participants not included in this experiment
 STAISData$FirstOrSecond <- c(rep.int(1, 0.5*length(STAISData$Subject)), rep.int(2, 0.5*length(STAISData$Subject)))
 STAISData$STAIS <- NA # Make new column for STAI-S rating, then fill it with values for the first and second ratings, respectively
 STAISData$STAIS[STAISData$FirstOrSecond == 1] <- STAISData$STAI.S[STAISData$FirstOrSecond == 1]
@@ -288,7 +288,7 @@ dev.off()
 
 # Analyse participants' guesses of treatment group membership
 demData$Guessed.group <- factor(demData$Guessed.group, levels = c("Placebo", "Likely_placebo", "Equivocal", "Likely_oxa", "Oxazepam"), ordered = TRUE)
-demData$Guessed.group[demData$Included_EP == 0 & demData$Included_ER == 0] <- NA
+demData$Guessed.group[demData$Included_EP == 0 & demData$Included_FMOV == 0] <- NA
 
 pdf("Fig_Blinding.pdf", width = 4, height = 4)
 barplot(t(matrix(c(table(demData$Guessed.group[demData$Treatment == "Placebo"]), table(demData$Guessed.group[demData$Treatment == "Oxazepam"])), nr = 5)), 
