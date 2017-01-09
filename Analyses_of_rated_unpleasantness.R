@@ -54,10 +54,20 @@ ratingsData$IRI_EC_z_OtherHigh[ratingsData$IRI_EC_z_OtherHigh > 0 & !is.na(ratin
 
 # Build model
 lme1 <- lme(Unpleasantness ~ Treatment*Stimulus*Condition + Wave + IRI_EC_z + IRI_EC_z_OtherHigh, data = ratingsData, random = ~1|Subject, na.action = na.omit)
-
 plot(lme1)
 summary(lme1)
 intervals(lme1)
+
+# Post-hoc tests at reviewer's request
+lme1b <- lme(Unpleasantness ~ Treatment*Stimulus + Wave + IRI_EC_z, data = ratingsData[ratingsData$Condition == "Self", ], random = ~1|Subject, na.action = na.omit)
+plot(lme1b)
+summary(lme1b)
+intervals(lme1b)
+
+lme1c <- lme(Unpleasantness ~ Treatment*Stimulus + Wave + IRI_EC_z + IRI_EC_z_OtherHigh, data = ratingsData[ratingsData$Condition == "Other", ], random = ~1|Subject, na.action = na.omit)
+plot(lme1c)
+summary(lme1c)
+intervals(lme1c)
 
 # Make plots
 eff1 <- effect("Treatment*Stimulus*Condition", lme1)
