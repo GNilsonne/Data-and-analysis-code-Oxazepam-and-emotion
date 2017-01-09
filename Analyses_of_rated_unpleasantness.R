@@ -64,7 +64,7 @@ plot(lme1b)
 summary(lme1b)
 intervals(lme1b)
 
-lme1c <- lme(Unpleasantness ~ Treatment*Stimulus + Wave + IRI_EC_z + IRI_EC_z_OtherHigh, data = ratingsData[ratingsData$Condition == "Other", ], random = ~1|Subject, na.action = na.omit)
+lme1c <- lme(Unpleasantness ~ Treatment*Stimulus + Wave + IRI_EC_z, data = ratingsData[ratingsData$Condition == "Other", ], random = ~1|Subject, na.action = na.omit)
 plot(lme1c)
 summary(lme1c)
 intervals(lme1c)
