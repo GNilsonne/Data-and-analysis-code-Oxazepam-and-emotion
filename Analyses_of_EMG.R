@@ -356,10 +356,21 @@ EMGEventData$IRI_EC_z_OtherHigh[EMGEventData$IRI_EC_z_OtherHigh > 0 & !is.na(EMG
 
 # Build model
 lme1 <- lme(EMG_corr_mean ~ Treatment*Stimulus*Condition + IRI_EC_z + IRI_EC_z_OtherHigh + Wave, data = EMGEventData, random = ~1|Subject, na.action = na.omit)
-
 plot(lme1)
 summary(lme1)
 intervals(lme1)
+
+# Post-hoc tests at reviewer's request
+lme1b <- lme(EMG_corr_mean ~ Treatment*Stimulus + IRI_EC_z + Wave, data = EMGEventData[EMGEventData$Condition == "Self", ], random = ~1|Subject, na.action = na.omit)
+plot(lme1b)
+summary(lme1b)
+intervals(lme1b)
+
+lme1c <- lme(EMG_corr_mean ~ Treatment*Stimulus + IRI_EC_z + Wave, data = EMGEventData[EMGEventData$Condition == "Other", ], random = ~1|Subject, na.action = na.omit)
+plot(lme1c)
+summary(lme1c)
+intervals(lme1c)
+
 
 eff1 <- effect("Treatment*Stimulus*Condition", lme1)
 
