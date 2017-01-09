@@ -59,10 +59,20 @@ SCRData$IRI_EC_z_OtherHigh[SCRData$IRI_EC_z_OtherHigh > 0 & !is.na(SCRData$IRI_E
 
 # Build model
 lme1 <- lme(sqrtSCR ~ Treatment*Stimulus*Condition + Wave + IRI_EC_z + IRI_EC_z_OtherHigh, data = SCRData, random = ~1|Subject, na.action = na.omit)
-
 plot(lme1)
 summary(lme1)
 intervals(lme1)
+
+# Post-hoc tests at reviewer's request
+lme1b <- lme(sqrtSCR ~ Treatment*Stimulus + Wave + IRI_EC_z, data = SCRData[SCRData$Condition == "Self", ], random = ~1|Subject, na.action = na.omit)
+plot(lme1b)
+summary(lme1b)
+intervals(lme1b)
+
+lme1c <- lme(sqrtSCR ~ Treatment*Stimulus + Wave + IRI_EC_z + IRI_EC_z_OtherHigh, data = SCRData[SCRData$Condition == "Other", ], random = ~1|Subject, na.action = na.omit)
+plot(lme1c)
+summary(lme1c)
+intervals(lme1c)
 
 # Make plots
 eff1 <- effect("Treatment*Stimulus*Condition", lme1)
