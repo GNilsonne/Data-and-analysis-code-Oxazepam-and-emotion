@@ -289,10 +289,21 @@ HeartRateEventData$IRI_EC_z_OtherHigh[HeartRateEventData$IRI_EC_z_OtherHigh > 0 
 
 # Build model
 lme1 <- lme(hr_mean ~ Treatment*Stimulus*Condition + IRI_EC_z + IRI_EC_z_OtherHigh, data = HeartRateEventData, random = ~1|Subject, na.action = na.omit)
-
 plot(lme1)
 summary(lme1)
 intervals(lme1)
+
+# Post-hoc tests at reviewer's request
+lme1b <- lme(hr_mean ~ Treatment*Stimulus + IRI_EC_z, data = HeartRateEventData[HeartRateEventData$Condition == "Self", ], random = ~1|Subject, na.action = na.omit)
+plot(lme1b)
+summary(lme1b)
+intervals(lme1b)
+
+lme1c <- lme(hr_mean ~ Treatment*Stimulus + IRI_EC_z + IRI_EC_z_OtherHigh, data = HeartRateEventData[HeartRateEventData$Condition == "Other", ], random = ~1|Subject, na.action = na.omit)
+plot(lme1c)
+summary(lme1c)
+intervals(lme1c)
+
 
 eff1 <- effect("Treatment*Stimulus*Condition", lme1)
 
